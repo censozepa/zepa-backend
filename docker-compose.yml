@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: docker.io/postgis/postgis:16-3.4
+    container_name: censozepa_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-censozepa}
+      POSTGRES_USER: ${POSTGRES_USER:-censozepa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-censozepa_secret}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:Z
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-censozepa} -d ${POSTGRES_DB:-censozepa}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

@@ -1,0 +1,38 @@
+import fastifyCors from '@fastify/cors';
+import Fastify, { FastifyInstance } from 'fastify';
+import { testDbConnection } from './config/db.js';
+import { authPlugin } from './plugins/auth.js';
+import { authRoutes } from './routes/auth.routes.js';
+import { sightingRoutes } from './routes/sighting.routes.js';
+
+export async function buildApp(): Promise<FastifyInstance> {
+  const app = Fastify({
+    logger: {
+      level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
+    },
+  });
+
+  // Habilitar CORS para peticiones desde React (Vite) y móviles
+  await app.register(fastifyCors, {
+    origin: true, // En desarrollo permite todos los orígenes
+    credentials: true,
+  });
+
+  // Plugins
+  await app.register(authPlugin);
+
+  // Healthcheck para Kubernetes (Liveness & Readiness Probes)
+  app.get('/health', async () => {
+    return {
+      status: 'ok',
+      service: 'censozepa-backend',
+      timestamp: new Date().toISOString(),
+    };
+  });
+
+  // Rutas de la API
+  await app.register(authRoutes, { prefix: '/api/auth' });
+  await app.register(sightingRoutes, { prefix: '/api/sightings' });
+
+  return app;
+}

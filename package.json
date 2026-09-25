@@ -1,0 +1,14 @@
+{
+  "name": "censozepa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CensoZEPA - Citizen Science bird sightings in ZEPAs",
+  "scripts": {
+    "start": "./run.sh",
+    "db:up": "podman compose up -d postgres",
+    "db:down": "podman compose down",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build"
+  }
+}
