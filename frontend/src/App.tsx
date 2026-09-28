@@ -180,11 +180,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'miteco' && (
-          <div style={{ flex: 1, height: '100%', overflowY: 'auto' }}>
-            <MitecoView />
-          </div>
-        )}
+        {activeTab === 'miteco' && <MitecoView />}
 
         {activeTab === 'settings' && <SettingsView user={user} />}
 
