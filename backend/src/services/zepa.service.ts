@@ -16,6 +16,9 @@ export interface SessionSummary {
   sessionNumber: number;
   zepaCode: string;
   tenantId: string | null;
+  userId?: string | null;
+  userEmail?: string | null;
+  userFullName?: string | null;
   startTime: string;
   endTime: string;
   durationSeconds: number;
@@ -82,6 +85,9 @@ export async function getSessions(tenantId?: string | null, zepaCode?: string): 
       ss.session_number AS "sessionNumber",
       ss.zepa_code AS "zepaCode",
       ss.tenant_id AS "tenantId",
+      ss.user_id AS "userId",
+      u.email AS "userEmail",
+      u.full_name AS "userFullName",
       ss.start_time AS "startTime",
       ss.end_time AS "endTime",
       ROUND(EXTRACT(EPOCH FROM (ss.end_time - ss.start_time)))::int AS "durationSeconds",
@@ -92,9 +98,10 @@ export async function getSessions(tenantId?: string | null, zepaCode?: string): 
       COUNT(s.id) FILTER (WHERE s.phenological_alert = true)::int AS "alertsCount",
       (COUNT(s.id) > 0) AS "hasObservations"
     FROM sampling_sessions ss
+    LEFT JOIN users u ON u.id = ss.user_id
     LEFT JOIN sightings s ON s.session_id = ss.id
     ${whereClause}
-    GROUP BY ss.id, ss.session_number, ss.zepa_code, ss.tenant_id, ss.start_time, ss.end_time, ss.distance_km
+    GROUP BY ss.id, ss.session_number, ss.zepa_code, ss.tenant_id, ss.user_id, u.email, u.full_name, ss.start_time, ss.end_time, ss.distance_km
     ORDER BY ss.start_time DESC;
   `;
 

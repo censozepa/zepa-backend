@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Navbar } from './components/Navbar/Navbar';
-import { SightingsMap } from './components/Map/SightingsMap';
-import { SessionInspector } from './components/Inspector/SessionInspector';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Sidebar, ActiveTab } from './components/Sidebar/Sidebar';
+import { DashboardView } from './components/Dashboard/DashboardView';
+import { MyRecordsView } from './components/MyRecords/MyRecordsView';
+import { SettingsView } from './components/Settings/SettingsView';
+import { AboutView } from './components/About/AboutView';
 import { LoginScreen } from './components/Auth/LoginScreen';
 import { fetchZepas, fetchSessions, fetchSightingsGeoJSON } from './services/api';
 import { SamplingSession, SightingFeatureCollection, User, ZepaZone } from './types/sightings';
+import { useTheme } from './context/ThemeContext';
 
 export const App: React.FC = () => {
+  const { colors } = useTheme();
+
   // Estado de usuario y autenticación
   const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('censozepa_user');
@@ -21,6 +26,10 @@ export const App: React.FC = () => {
     return null;
   });
 
+  // Pestaña activa en el menú lateral
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+
+  // Datos globales
   const [zepas, setZepas] = useState<ZepaZone[]>([]);
   const [selectedZepaCode, setSelectedZepaCode] = useState<string>('ES0000365');
   const [sessions, setSessions] = useState<SamplingSession[]>([]);
@@ -120,58 +129,99 @@ export const App: React.FC = () => {
     setData(null);
   };
 
-  // =========================================================================
-  // GATEKEEPER DE SEGURIDAD:
-  // Si no hay usuario autenticado, SE MUESTRA ÚNICAMENTE LA PANTALLA DE LOGIN
-  // La aplicación NO está abierta al público y NO muestra mapas sin login
-  // =========================================================================
+  // Conteo de registros personales del usuario actual
+  const personalSightingsCount = useMemo(() => {
+    if (!data || !user) return 0;
+    return data.features.filter((f) => {
+      const p = f.properties;
+      return (
+        (p.userId && p.userId === user.id) ||
+        (p.observerEmail && p.observerEmail.toLowerCase() === user.email.toLowerCase()) ||
+        (p.observer && p.observer.toLowerCase() === user.full_name.toLowerCase())
+      );
+    }).length;
+  }, [data, user]);
+
+  const totalSightingsCount = data?.features.length || 0;
+
+  // Gatekeeper: si no hay usuario, mostrar pantalla de login (sin contraseñas)
   if (!user) {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const selectedZepa = zepas.find((z) => z.code === selectedZepaCode) || null;
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <Navbar
-        zepas={zepas}
-        selectedZepaCode={selectedZepaCode}
-        onSelectZepa={(code) => {
-          setSelectedZepaCode(code);
-          setActiveSessionNum(null);
-        }}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        onRefresh={() => {
-          loadZepas();
-          loadSessions(selectedZepaCode);
-          loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
-        }}
-        totalSightings={data?.features.length ?? 0}
+    <div
+      style={{
+        display: 'flex',
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        backgroundColor: colors.mainBg,
+        color: colors.textPrimary,
+      }}
+    >
+      {/* Menú lateral izquierdo (Sidebar) */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         user={user}
         onLogout={handleLogout}
+        personalSightingsCount={personalSightingsCount}
+        totalSightingsCount={totalSightingsCount}
       />
 
-      <div style={{ display: 'flex', flex: 1, height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
-        {/* Panel Cartográfico Principal (Izquierda) */}
-        <main style={{ flex: 1, position: 'relative', height: '100%' }}>
-          <SightingsMap
-            data={data}
-            selectedZepa={selectedZepa}
-            loading={loading}
+      {/* Área de contenido principal según la pestaña activa */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        {activeTab === 'dashboard' && (
+          <DashboardView
+            user={user}
+            zepas={zepas}
+            selectedZepaCode={selectedZepaCode}
+            onSelectZepa={(code) => {
+              setSelectedZepaCode(code);
+              setActiveSessionNum(null);
+            }}
+            sessions={sessions}
+            activeSessionNum={activeSessionNum}
             onSelectSession={(num) => setActiveSessionNum(num)}
+            sightingsData={data}
+            loading={loading}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onRefresh={() => {
+              loadZepas();
+              loadSessions(selectedZepaCode);
+              loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
+            }}
           />
-        </main>
+        )}
 
-        {/* Panel Inspector de Sesiones y Taxonomía (Derecha) */}
-        <SessionInspector
-          selectedZepa={selectedZepa}
-          sessions={sessions}
-          activeSessionNum={activeSessionNum}
-          onSelectSession={(num) => setActiveSessionNum(num)}
-          sightingsData={data}
-        />
-      </div>
+        {activeTab === 'my-records' && (
+          <MyRecordsView
+            user={user}
+            zepas={zepas}
+            selectedZepaCode={selectedZepaCode}
+            onSelectZepa={(code) => {
+              setSelectedZepaCode(code);
+              setActiveSessionNum(null);
+            }}
+            sessions={sessions}
+            activeSessionNum={activeSessionNum}
+            onSelectSession={(num) => setActiveSessionNum(num)}
+            sightingsData={data}
+            loading={loading}
+            onRefresh={() => {
+              loadZepas();
+              loadSessions(selectedZepaCode);
+              loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
+            }}
+          />
+        )}
+
+        {activeTab === 'settings' && <SettingsView user={user} />}
+
+        {activeTab === 'about' && <AboutView />}
+      </main>
     </div>
   );
 };

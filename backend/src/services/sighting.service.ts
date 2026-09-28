@@ -179,6 +179,8 @@ export async function getSightings(query: GetSightingsQuery, tenantId?: string |
               'accuracyMeters', s.accuracy_meters,
               'notes', s.notes,
               'observer', u.full_name,
+              'observerEmail', u.email,
+              'userId', s.user_id,
               'tenantId', s.tenant_id,
               'createdAt', s.created_at
             )
@@ -186,7 +188,7 @@ export async function getSightings(query: GetSightingsQuery, tenantId?: string |
         ), '[]'::json)
       ) AS geojson
       FROM (
-        SELECT s.*, u.full_name
+        SELECT s.*, u.full_name, u.email
         FROM sightings s
         JOIN users u ON u.id = s.user_id
         ${whereClause}

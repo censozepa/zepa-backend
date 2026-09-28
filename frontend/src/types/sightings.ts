@@ -13,6 +13,9 @@ export interface SightingProperties {
   accuracyMeters?: number | null;
   notes?: string | null;
   observer: string;
+  observerEmail?: string | null;
+  userId?: string | null;
+  tenantId?: string | null;
   createdAt: string;
 }
 
@@ -36,6 +39,9 @@ export interface SamplingSession {
   sessionNumber: number;
   zepaCode: string;
   tenantId?: string | null;
+  userId?: string | null;
+  userEmail?: string | null;
+  userFullName?: string | null;
   startTime: string;
   endTime: string;
   durationSeconds: number;
@@ -66,6 +72,7 @@ export interface User {
   tenantId?: string | null;
   tenantName?: string | null;
   tenantSlug?: string | null;
+  avatarUrl?: string | null;
 }
 
 export interface AuthResponse {
