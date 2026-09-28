@@ -33,13 +33,10 @@ export const App: React.FC = () => {
   const [zepas, setZepas] = useState<ZepaZone[]>([]);
   const [selectedZepaCode, setSelectedZepaCode] = useState<string>('ALL');
   const [sessions, setSessions] = useState<SamplingSession[]>([]);
-  const [activeSessionNum, setActiveSessionNum] = useState<number | null>(null);
-
   const [data, setData] = useState<SightingFeatureCollection | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const searchTerm = '';
 
-  // 1. Cargar ZEPAs asignadas al Tenant del usuario
+  // 1. Cargar todas las ZEPAs de la plataforma
   const loadZepas = useCallback(async () => {
     if (!user) return;
     try {
@@ -53,64 +50,48 @@ export const App: React.FC = () => {
     }
   }, [user, selectedZepaCode]);
 
-  // 2. Cargar sesiones de la ZEPA activa
-  const loadSessions = useCallback(
-    async (zepaCode: string) => {
-      if (!user) return;
-      try {
-        const sessionList = await fetchSessions(zepaCode);
-        setSessions(sessionList);
-      } catch (e) {
-        console.error('Error cargando sesiones', e);
-      }
-    },
-    [user]
-  );
+  // 2. Cargar todas las sesiones de muestreo de la plataforma
+  const loadSessions = useCallback(async () => {
+    if (!user) return;
+    try {
+      const sessionList = await fetchSessions('ALL');
+      setSessions(sessionList);
+    } catch (e) {
+      console.error('Error cargando sesiones', e);
+    }
+  }, [user]);
 
-  // 3. Cargar avistamientos geolocalizados
-  const loadSightings = useCallback(
-    async (speciesFilter?: string, zepaCode?: string, sessionNum?: number | null) => {
-      if (!user) return;
-      setLoading(true);
-      try {
-        const geojson = await fetchSightingsGeoJSON({
-          species: speciesFilter,
-          zepaCode: zepaCode || selectedZepaCode,
-          sessionNumber: sessionNum ?? undefined,
-        });
-        setData(geojson);
-      } catch (err) {
-        console.error('Error al cargar avistamientos:', err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user, selectedZepaCode]
-  );
+  // 3. Cargar todos los avistamientos de la plataforma
+  const loadSightings = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const geojson = await fetchSightingsGeoJSON({ zepaCode: 'ALL' });
+      setData(geojson);
+    } catch (err) {
+      console.error('Error al cargar avistamientos:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
-  // Disparar carga de ZEPAs cuando el usuario inicia sesión
+  // Función unificada para refrescar todos los datos de la plataforma
+  const refreshAllData = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      await Promise.all([loadZepas(), loadSessions(), loadSightings()]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, loadZepas, loadSessions, loadSightings]);
+
+  // Disparar carga de datos globales cuando el usuario inicia sesión
   useEffect(() => {
     if (user) {
-      loadZepas();
+      refreshAllData();
     }
-  }, [user, loadZepas]);
-
-  // Disparar carga de sesiones al cambiar ZEPA
-  useEffect(() => {
-    if (user && selectedZepaCode) {
-      loadSessions(selectedZepaCode);
-      setActiveSessionNum(null);
-    }
-  }, [user, selectedZepaCode, loadSessions]);
-
-  // Disparar carga de avistamientos con debounce
-  useEffect(() => {
-    if (!user) return;
-    const timer = setTimeout(() => {
-      loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [user, searchTerm, selectedZepaCode, activeSessionNum, loadSightings]);
+  }, [user, refreshAllData]);
 
   // Manejo de inicio de sesión exitoso
   const handleLoginSuccess = (loggedInUser: User, token: string) => {
@@ -181,11 +162,7 @@ export const App: React.FC = () => {
             sessions={sessions}
             sightingsData={data}
             loading={loading}
-            onRefresh={() => {
-              loadZepas();
-              loadSessions(selectedZepaCode);
-              loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
-            }}
+            onRefresh={refreshAllData}
           />
         )}
 
@@ -198,11 +175,7 @@ export const App: React.FC = () => {
             sessions={sessions}
             sightingsData={data}
             loading={loading}
-            onRefresh={() => {
-              loadZepas();
-              loadSessions(selectedZepaCode);
-              loadSightings(searchTerm, selectedZepaCode, activeSessionNum);
-            }}
+            onRefresh={refreshAllData}
           />
         )}
 

@@ -7,14 +7,13 @@ const getSessionsQuerySchema = z.object({
 });
 
 export const zepaRoutes: FastifyPluginAsync = async (fastify) => {
-  // 1. Listado de ZEPAs con geometrías y estadísticas acumuladas (Protegido por tenant)
+  // 1. Listado de ZEPAs con geometrías y estadísticas acumuladas globales
   fastify.get(
     '/zepas',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       try {
-        const tenantId = request.user.role === 'admin' ? null : request.user.tenantId;
-        const zepas = await getZepas(tenantId);
+        const zepas = await getZepas(null);
         return reply.send(zepas);
       } catch (err: any) {
         fastify.log.error(err);
@@ -23,7 +22,7 @@ export const zepaRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // 2. Listado de sesiones de muestreo (Protegido por tenant)
+  // 2. Listado de sesiones de muestreo globales de la plataforma
   fastify.get(
     '/sessions',
     { preHandler: [fastify.authenticate] },
@@ -37,8 +36,7 @@ export const zepaRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       try {
-        const tenantId = request.user.role === 'admin' ? null : request.user.tenantId;
-        const sessions = await getSessions(tenantId, parseResult.data.zepaCode);
+        const sessions = await getSessions(null, parseResult.data.zepaCode);
         return reply.send(sessions);
       } catch (err: any) {
         fastify.log.error(err);
@@ -47,17 +45,16 @@ export const zepaRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // 3. Detalle de una sesión específica con sus avistamientos (Protegido por tenant)
+  // 3. Detalle de una sesión específica con sus avistamientos
   fastify.get(
     '/sessions/:id',
     { preHandler: [fastify.authenticate] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       try {
-        const tenantId = request.user.role === 'admin' ? null : request.user.tenantId;
-        const session = await getSessionDetails(id, tenantId);
+        const session = await getSessionDetails(id, null);
         if (!session) {
-          return reply.status(404).send({ error: 'Sesión no encontrada o no autorizada para este tenant' });
+          return reply.status(404).send({ error: 'Sesión no encontrada' });
         }
         return reply.send(session);
       } catch (err: any) {

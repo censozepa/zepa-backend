@@ -79,8 +79,7 @@ export const sightingRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       try {
-        const tenantId = request.user.role === 'admin' ? null : request.user.tenantId;
-        const data = await getSightings(parseResult.data, tenantId);
+        const data = await getSightings(parseResult.data, null);
         return reply.send(data);
       } catch (err: any) {
         fastify.log.error(err);

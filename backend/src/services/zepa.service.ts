@@ -37,25 +37,41 @@ export async function getZepas(tenantId?: string | null): Promise<ZepaSummary[]>
 
   if (tenantId) {
     values.push(tenantId);
-    tenantFilterSessions = `AND ss.tenant_id = $1`;
-    tenantFilterSightings = `AND s.tenant_id = $1`;
+    tenantFilterSessions = `WHERE ss.tenant_id = $1`;
+    tenantFilterSightings = `WHERE s.tenant_id = $1`;
   }
 
   const sql = `
+    WITH session_counts AS (
+      SELECT ss.zepa_code, COUNT(*)::int AS total_sessions
+      FROM sampling_sessions ss
+      ${tenantFilterSessions}
+      GROUP BY ss.zepa_code
+    ),
+    sighting_stats AS (
+      SELECT 
+        s.zepa_code,
+        COUNT(*)::int AS total_sightings,
+        COALESCE(SUM(s.count), 0)::int AS total_birds,
+        COUNT(DISTINCT s.species_code)::int AS unique_species,
+        COUNT(*) FILTER (WHERE s.phenological_alert = true)::int AS alerts_count
+      FROM sightings s
+      ${tenantFilterSightings}
+      GROUP BY s.zepa_code
+    )
     SELECT 
       z.code,
       z.name,
       ST_AsGeoJSON(z.geometry)::json AS geometry,
-      COUNT(DISTINCT ss.id)::int AS "totalSessions",
-      COUNT(s.id)::int AS "totalSightings",
-      COALESCE(SUM(s.count), 0)::int AS "totalBirds",
-      COUNT(DISTINCT s.species_code)::int AS "uniqueSpecies",
-      COUNT(s.id) FILTER (WHERE s.phenological_alert = true)::int AS "alertsCount"
+      COALESCE(sc.total_sessions, 0)::int AS "totalSessions",
+      COALESCE(st.total_sightings, 0)::int AS "totalSightings",
+      COALESCE(st.total_birds, 0)::int AS "totalBirds",
+      COALESCE(st.unique_species, 0)::int AS "uniqueSpecies",
+      COALESCE(st.alerts_count, 0)::int AS "alertsCount"
     FROM zepa_zones z
-    LEFT JOIN sampling_sessions ss ON ss.zepa_code = z.code ${tenantFilterSessions}
-    LEFT JOIN sightings s ON s.zepa_code = z.code ${tenantFilterSightings}
-    GROUP BY z.code, z.name, z.geometry
-    HAVING COUNT(DISTINCT ss.id) > 0 OR COUNT(s.id) > 0
+    LEFT JOIN session_counts sc ON sc.zepa_code = z.code
+    LEFT JOIN sighting_stats st ON st.zepa_code = z.code
+    WHERE COALESCE(sc.total_sessions, 0) > 0 OR COALESCE(st.total_sightings, 0) > 0
     ORDER BY z.name;
   `;
   const result = await pool.query(sql, values);
