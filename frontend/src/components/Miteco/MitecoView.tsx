@@ -1143,6 +1143,28 @@ export const MitecoView: React.FC = () => {
                     >
                       {modalZepa?.sitetype === 'A' ? 'ZEPA Exclusiva (Tipo A)' : 'ZEPA Coincidente LIC (Tipo C)'}
                     </span>
+                    {modalZepa?.sitecode && (
+                      <a
+                        href={`https://natura2000.eea.europa.eu/Natura2000/sdf/#/sdf?site=${encodeURIComponent(modalZepa.sitecode)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                          color: '#2563eb',
+                          textDecoration: 'none',
+                        }}
+                        title={`Abrir Formulario Normalizado de Datos (SDF) oficial de ${modalZepa.sitecode} en Natura 2000`}
+                      >
+                        SDF Oficial <ExternalLink size={10} />
+                      </a>
+                    )}
                   </div>
                   <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '3px 0 0 0', color: colors.textPrimary }}>
                     {modalZepa?.sitename}
@@ -1229,6 +1251,27 @@ export const MitecoView: React.FC = () => {
                   <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>
                     {modalZepa?.date_update ? modalZepa.date_update.split('T')[0] : 'Diciembre 2024'}
                   </div>
+                  {modalZepa?.sitecode && (
+                    <a
+                      href={`https://natura2000.eea.europa.eu/Natura2000/sdf/#/sdf?site=${encodeURIComponent(modalZepa.sitecode)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '11px',
+                        color: '#3b82f6',
+                        marginTop: '3px',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                      }}
+                      title={`Abrir Formulario Normalizado de Datos (SDF) oficial de la UE para ${modalZepa.sitecode}`}
+                    >
+                      <ExternalLink size={11} />
+                      Ficha SDF oficial
+                    </a>
+                  )}
                 </div>
               </div>
 
