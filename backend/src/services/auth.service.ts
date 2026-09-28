@@ -9,6 +9,9 @@ export interface UserRow {
   full_name: string;
   role: 'volunteer' | 'admin' | 'researcher';
   is_active: boolean;
+  tenant_id?: string | null;
+  tenant_name?: string | null;
+  tenant_slug?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -38,7 +41,11 @@ export async function registerUser(input: RegisterInput): Promise<SafeUser> {
 
 export async function validateUserCredentials(email: string, password: string): Promise<SafeUser | null> {
   const result = await pool.query<UserRow>(
-    'SELECT * FROM users WHERE email = $1 AND is_active = true',
+    `SELECT u.id, u.email, u.password_hash, u.full_name, u.role, u.is_active, u.created_at, u.updated_at,
+            u.tenant_id, t.name AS tenant_name, t.slug AS tenant_slug
+     FROM users u
+     LEFT JOIN tenants t ON t.id = u.tenant_id
+     WHERE u.email = $1 AND u.is_active = true`,
     [email.toLowerCase()]
   );
 
@@ -58,8 +65,24 @@ export async function validateUserCredentials(email: string, password: string): 
 
 export async function getUserById(id: string): Promise<SafeUser | null> {
   const result = await pool.query<UserRow>(
-    'SELECT id, email, full_name, role, is_active, created_at, updated_at FROM users WHERE id = $1',
+    `SELECT u.id, u.email, u.full_name, u.role, u.is_active, u.created_at, u.updated_at,
+            u.tenant_id, t.name AS tenant_name, t.slug AS tenant_slug
+     FROM users u
+     LEFT JOIN tenants t ON t.id = u.tenant_id
+     WHERE u.id = $1`,
     [id]
+  );
+  return result.rows[0] || null;
+}
+
+export async function getUserByEmail(email: string): Promise<SafeUser | null> {
+  const result = await pool.query<UserRow>(
+    `SELECT u.id, u.email, u.full_name, u.role, u.is_active, u.created_at, u.updated_at,
+            u.tenant_id, t.name AS tenant_name, t.slug AS tenant_slug
+     FROM users u
+     LEFT JOIN tenants t ON t.id = u.tenant_id
+     WHERE u.email = $1 AND u.is_active = true`,
+    [email.toLowerCase()]
   );
   return result.rows[0] || null;
 }

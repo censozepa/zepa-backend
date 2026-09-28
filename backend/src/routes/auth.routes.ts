@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { loginSchema, registerSchema } from '../schemas/auth.schema.js';
-import { getUserById, registerUser, validateUserCredentials } from '../services/auth.service.js';
+import { getUserById, getUserByEmail, registerUser, validateUserCredentials } from '../services/auth.service.js';
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Registro de usuarios
@@ -59,12 +59,65 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      tenantId: user.tenant_id ?? null,
+      tenantName: user.tenant_name ?? null,
+      tenantSlug: user.tenant_slug ?? null,
     });
 
     return reply.send({
       message: 'Inicio de sesión correcto',
       token,
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        tenantId: user.tenant_id ?? null,
+        tenantName: user.tenant_name ?? null,
+        tenantSlug: user.tenant_slug ?? null,
+      },
+    });
+  });
+
+  // Login Social con Google / OpenID Connect (OIDC)
+  fastify.post('/google', async (request, reply) => {
+    const { email } = (request.body as { email?: string }) || {};
+    if (!email) {
+      return reply.status(400).send({
+        error: 'ValidationError',
+        message: 'El correo de Google es obligatorio',
+      });
+    }
+
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return reply.status(404).send({
+        error: 'UserNotFound',
+        message: `La cuenta de Google ${email} no está dada de alta en CensoZEPA.`,
+      });
+    }
+
+    const token = fastify.jwt.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenant_id ?? null,
+      tenantName: user.tenant_name ?? null,
+      tenantSlug: user.tenant_slug ?? null,
+    });
+
+    return reply.send({
+      message: 'Inicio de sesión con Google (OpenID Connect) exitoso',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        tenantId: user.tenant_id ?? null,
+        tenantName: user.tenant_name ?? null,
+        tenantSlug: user.tenant_slug ?? null,
+      },
     });
   });
 
