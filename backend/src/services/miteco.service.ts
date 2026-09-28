@@ -48,6 +48,8 @@ export interface ZepaSpeciesRecord {
   abundance_category: string | null;
   dataquality: string | null;
   conservation: string | null;
+  source_table?: string;
+  motivation?: string | null;
 }
 
 export async function getMitecoSummary(): Promise<MitecoZepaSummary> {
@@ -179,10 +181,12 @@ export async function getMitecoZepaDetails(sitecode: string): Promise<{
         counting_unit,
         abundance_category,
         dataquality,
-        conservation
+        conservation,
+        source_table,
+        motivation
        FROM miteco.directiva_aves_especies
        WHERE sitecode = $1
-       ORDER BY speciesname ASC`,
+       ORDER BY CASE WHEN source_table = 'Art. 4' THEN 1 ELSE 2 END, speciesname ASC`,
       [cleanCode]
     ),
   ]);

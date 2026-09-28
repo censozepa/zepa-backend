@@ -61,6 +61,7 @@ export const MitecoView: React.FC = () => {
   const [modalZepa, setModalZepa] = useState<ZepaRecord | null>(null);
   const [modalSpecies, setModalSpecies] = useState<ZepaSpeciesRecord[]>([]);
   const [speciesSearch, setSpeciesSearch] = useState<string>('');
+  const [modalSourceFilter, setModalSourceFilter] = useState<'ALL' | 'Art. 4' | 'Otras Especies'>('ALL');
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   // 1. Cargar Resumen oficial MITECO
@@ -116,6 +117,7 @@ export const MitecoView: React.FC = () => {
     setModalZepa(zepa);
     setModalSpecies([]);
     setSpeciesSearch('');
+    setModalSourceFilter('ALL');
     setModalLoading(true);
 
     try {
@@ -134,19 +136,50 @@ export const MitecoView: React.FC = () => {
     setModalZepa(null);
     setModalSpecies([]);
     setSpeciesSearch('');
+    setModalSourceFilter('ALL');
   };
+
+  // Conteo según fuente/sección del SDF
+  const art4Count = useMemo(
+    () => modalSpecies.filter((s) => s.source_table === 'Art. 4' || !s.source_table).length,
+    [modalSpecies]
+  );
+  const otherCount = useMemo(
+    () => modalSpecies.filter((s) => s.source_table === 'Otras Especies').length,
+    [modalSpecies]
+  );
 
   // Filtrado interno de especies en el modal
   const filteredModalSpecies = useMemo(() => {
-    if (!speciesSearch.trim()) return modalSpecies;
+    let list = modalSpecies;
+    if (modalSourceFilter !== 'ALL') {
+      list = list.filter((s) => (s.source_table || 'Art. 4') === modalSourceFilter);
+    }
+    if (!speciesSearch.trim()) return list;
     const term = speciesSearch.toLowerCase();
-    return modalSpecies.filter(
+    return list.filter(
       (s) =>
         s.speciesname.toLowerCase().includes(term) ||
-        s.speciescode.toLowerCase().includes(term) ||
-        (s.counting_unit && s.counting_unit.toLowerCase().includes(term))
+        (s.speciescode && s.speciescode.toLowerCase().includes(term)) ||
+        (s.counting_unit && s.counting_unit.toLowerCase().includes(term)) ||
+        (s.motivation && s.motivation.toLowerCase().includes(term))
     );
-  }, [modalSpecies, speciesSearch]);
+  }, [modalSpecies, speciesSearch, modalSourceFilter]);
+
+  const getMotivationLabel = (code: string | null | undefined) => {
+    switch (code) {
+      case 'A':
+        return 'Lista Roja Nacional (Catálogo Español de Especies Amenazadas)';
+      case 'B':
+        return 'Especie Endémica ibérica o insular';
+      case 'C':
+        return 'Convenios Internacionales (Convenio de Berna, Bonn, Ramsar)';
+      case 'D':
+        return 'Otras razones de conservación / Interés científico o regional';
+      default:
+        return code ? `Motivación: ${code}` : 'No especificada';
+    }
+  };
 
   // Cambio de ordenación
   const handleSort = (column: string) => {
@@ -1324,51 +1357,126 @@ export const MitecoView: React.FC = () => {
                 <div
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                    marginBottom: '12px',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    marginBottom: '14px',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Bird size={18} color="#10b981" />
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: colors.textPrimary }}>
-                      Aves Censadas en esta ZEPA ({modalSpecies.length} especies catalogadas)
-                    </h3>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Bird size={20} color="#10b981" />
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: colors.textPrimary }}>
+                          Aves Censadas en esta ZEPA ({modalSpecies.length} censos catalogados)
+                        </h3>
+                      </div>
+                      <div style={{ fontSize: '12.5px', color: colors.textSecondary, marginLeft: '28px', marginTop: '3px' }}>
+                        <span style={{ fontWeight: 700, color: '#10b981' }}>{art4Count}</span> de Directiva Aves (Art. 4) ·{' '}
+                        <span style={{ fontWeight: 700, color: '#3b82f6' }}>{otherCount}</span> de Otras Especies Relevantes
+                      </div>
+                    </div>
+
+                    {modalSpecies.length > 5 && (
+                      <div style={{ position: 'relative', width: '240px' }}>
+                        <Search
+                          size={14}
+                          style={{
+                            position: 'absolute',
+                            left: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: colors.textSecondary,
+                          }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Filtrar ave o motivación..."
+                          value={speciesSearch}
+                          onChange={(e) => setSpeciesSearch(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '7px 10px 7px 30px',
+                            backgroundColor: inputBg,
+                            color: colors.textPrimary,
+                            border: `1px solid ${colors.cardBorder}`,
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {modalSpecies.length > 5 && (
-                    <div style={{ position: 'relative', width: '220px' }}>
-                      <Search
-                        size={14}
-                        style={{
-                          position: 'absolute',
-                          left: '10px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          color: colors.textSecondary,
-                        }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Filtrar ave..."
-                        value={speciesSearch}
-                        onChange={(e) => setSpeciesSearch(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '6px 10px 6px 30px',
-                          backgroundColor: inputBg,
-                          color: colors.textPrimary,
-                          border: `1px solid ${colors.cardBorder}`,
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                    </div>
-                  )}
+                  {/* Pestañas de filtrado Art. 4 vs Otras Especies */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setModalSourceFilter('ALL')}
+                      style={{
+                        padding: '5px 14px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: modalSourceFilter === 'ALL' ? '#10b981' : inputBg,
+                        color: modalSourceFilter === 'ALL' ? '#ffffff' : colors.textSecondary,
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: modalSourceFilter === 'ALL' ? '#10b981' : colors.cardBorder,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Todas ({modalSpecies.length})
+                    </button>
+                    <button
+                      onClick={() => setModalSourceFilter('Art. 4')}
+                      style={{
+                        padding: '5px 14px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: modalSourceFilter === 'Art. 4' ? '#10b981' : inputBg,
+                        color: modalSourceFilter === 'Art. 4' ? '#ffffff' : colors.textSecondary,
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: modalSourceFilter === 'Art. 4' ? '#10b981' : colors.cardBorder,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Directiva Aves Art. 4 ({art4Count})
+                    </button>
+                    <button
+                      onClick={() => setModalSourceFilter('Otras Especies')}
+                      style={{
+                        padding: '5px 14px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: modalSourceFilter === 'Otras Especies' ? '#3b82f6' : inputBg,
+                        color: modalSourceFilter === 'Otras Especies' ? '#ffffff' : colors.textSecondary,
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: modalSourceFilter === 'Otras Especies' ? '#3b82f6' : colors.cardBorder,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      Otras Especies Relevantes ({otherCount})
+                    </button>
+                  </div>
                 </div>
 
                 {modalLoading ? (
@@ -1389,12 +1497,12 @@ export const MitecoView: React.FC = () => {
                   >
                     {speciesSearch
                       ? `No se encontró ninguna especie con el término "${speciesSearch}"`
-                      : 'No hay especies de aves registradas en el banco oficial para este espacio.'}
+                      : 'No hay especies de aves registradas en el banco oficial para este espacio o filtro.'}
                   </div>
                 ) : (
                   <div
                     style={{
-                      maxHeight: '320px',
+                      maxHeight: '340px',
                       overflowY: 'auto',
                       borderRadius: '10px',
                       border: `1px solid ${colors.cardBorder}`,
@@ -1408,6 +1516,9 @@ export const MitecoView: React.FC = () => {
                           </th>
                           <th style={{ padding: '10px 14px', fontWeight: 700, color: colors.textSecondary }}>
                             Código Directiva
+                          </th>
+                          <th style={{ padding: '10px 14px', fontWeight: 700, color: colors.textSecondary }}>
+                            Origen / Categoría
                           </th>
                           <th style={{ padding: '10px 14px', fontWeight: 700, color: colors.textSecondary }}>
                             Población / Tipo
@@ -1426,7 +1537,7 @@ export const MitecoView: React.FC = () => {
                       <tbody>
                         {filteredModalSpecies.map((sp, idx) => (
                           <tr
-                            key={`${sp.speciescode}-${idx}`}
+                            key={`${sp.speciescode || sp.speciesname}-${idx}`}
                             style={{
                               borderBottom: `1px solid ${colors.cardBorder}`,
                               transition: 'background-color 0.15s ease',
@@ -1438,10 +1549,59 @@ export const MitecoView: React.FC = () => {
                               {sp.speciesname}
                             </td>
                             <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#10b981', fontWeight: 600 }}>
-                              {sp.speciescode}
+                              {sp.speciescode ? sp.speciescode : <span style={{ color: colors.textSecondary, fontWeight: 400 }}>-</span>}
+                            </td>
+                            <td style={{ padding: '10px 14px' }}>
+                              {sp.source_table === 'Otras Especies' ? (
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                  <span
+                                    style={{
+                                      padding: '2px 7px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                                      color: '#3b82f6',
+                                    }}
+                                    title="Otras especies de aves de relevancia ornitológica (Sección 3.3 del SDF de la UE)"
+                                  >
+                                    Otras Especies
+                                  </span>
+                                  {sp.motivation && (
+                                    <span
+                                      style={{
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        fontSize: '10.5px',
+                                        fontWeight: 800,
+                                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                        color: '#f59e0b',
+                                        cursor: 'help',
+                                      }}
+                                      title={getMotivationLabel(sp.motivation)}
+                                    >
+                                      {sp.motivation}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span
+                                  style={{
+                                    padding: '2px 7px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                    color: '#10b981',
+                                  }}
+                                  title="Especie referida en el Artículo 4 de la Directiva Aves 2009/147/CE (Sección 3.2 del SDF de la UE)"
+                                >
+                                  Art. 4 (Directiva)
+                                </span>
+                              )}
                             </td>
                             <td style={{ padding: '10px 14px', color: colors.textSecondary }}>
-                              {getPopulationTypeLabel(sp.population_type)}
+                              {sp.population_type ? getPopulationTypeLabel(sp.population_type) : '-'}
                             </td>
                             <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600 }}>
                               {sp.lowerbound !== null && sp.upperbound !== null
@@ -1696,7 +1856,95 @@ export const MitecoView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sección 2: Población / Tipo de Presencia */}
+              {/* Sección 2: Directiva Aves (Art. 4) vs Otras Especies Relevantes */}
+              <div
+                style={{
+                  backgroundColor: inputBg,
+                  padding: '18px 20px',
+                  borderRadius: '14px',
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <Bird size={18} color="#10b981" />
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
+                    2. Categorías de Aves Censadas: Directiva Aves (Art. 4) vs Otras Especies Relevantes
+                  </h3>
+                </div>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.5 }}>
+                  En el Formulario Normalizado de Datos (SDF) oficial de la Red Natura 2000 y el Banco de Datos de la Naturaleza (MITECO), las aves registradas en una ZEPA se estructuran en dos apartados oficiales:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                  <div
+                    style={{
+                      padding: '14px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          backgroundColor: '#10b981',
+                          color: '#ffffff',
+                        }}
+                      >
+                        Directiva Aves (Art. 4)
+                      </span>
+                      <strong style={{ fontSize: '13px', color: colors.textPrimary }}>Sección 3.2 SDF oficial</strong>
+                    </div>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      Especies de aves mencionadas en el <strong>Artículo 4 de la Directiva 2009/147/CE</strong>: aquellas listadas en el <strong>Anexo I</strong> (especies en peligro, vulnerables o de conservación prioritaria) o <strong>aves migratorias de llegada regular</strong>.
+                    </p>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      • Cuentan con un <strong>código oficial de ave de la UE de 4 caracteres</strong> (ej. <code>A085</code>, <code>A229</code>).<br />
+                      • Motivan formalmente la designación y protección de la ZEPA ante la Comisión Europea.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '14px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          backgroundColor: '#3b82f6',
+                          color: '#ffffff',
+                        }}
+                      >
+                        Otras Especies Relevantes
+                      </span>
+                      <strong style={{ fontSize: '13px', color: colors.textPrimary }}>Sección 3.3 SDF oficial</strong>
+                    </div>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      Otras especies importantes de aves censadas en el espacio que, sin ser las determinantes del Art. 4, poseen <strong>alto valor ornitológico, singularidad biogeográfica o interés para la conservación</strong>.
+                    </p>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      Cada especie incluye un <strong>código de motivación</strong>:<br />
+                      <strong>[A]</strong> Lista Roja Nacional / Catálogo de Especies Amenazadas.<br />
+                      <strong>[B]</strong> Especie Endémica ibérica o insular.<br />
+                      <strong>[C]</strong> Convenios Internacionales (Berna, Bonn, Ramsar).<br />
+                      <strong>[D]</strong> Otras razones de conservación / Interés científico o regional.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Población / Tipo de Presencia */}
               <div
                 style={{
                   backgroundColor: inputBg,
@@ -1708,7 +1956,7 @@ export const MitecoView: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <Bird size={18} color="#0284c7" />
                   <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
-                    2. Tipo de Población o Presencia de las Aves (Columna "Población / Tipo")
+                    3. Tipo de Población o Presencia de las Aves (Columna "Población / Tipo")
                   </h3>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
@@ -1754,7 +2002,7 @@ export const MitecoView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sección 3: Conteo Oficial y Unidades */}
+              {/* Sección 4: Conteo Oficial y Unidades */}
               <div
                 style={{
                   backgroundColor: inputBg,
@@ -1766,7 +2014,7 @@ export const MitecoView: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <FileText size={18} color="#a855f7" />
                   <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
-                    3. Conteo Poblacional Oficial y Unidades de Censo
+                    4. Conteo Poblacional Oficial y Unidades de Censo
                   </h3>
                 </div>
                 <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
@@ -1800,7 +2048,7 @@ export const MitecoView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sección 4: Categoría de Abundancia */}
+              {/* Sección 5: Categoría de Abundancia */}
               <div
                 style={{
                   backgroundColor: inputBg,
@@ -1812,7 +2060,7 @@ export const MitecoView: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <Layers size={18} color="#3b82f6" />
                   <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
-                    4. Categoría de Abundancia Relativa
+                    5. Categoría de Abundancia Relativa
                   </h3>
                 </div>
                 <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
@@ -1853,7 +2101,7 @@ export const MitecoView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sección 5: Estado de Conservación y Calidad */}
+              {/* Sección 6: Estado de Conservación y Calidad */}
               <div
                 style={{
                   display: 'grid',
@@ -1873,7 +2121,7 @@ export const MitecoView: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <CheckCircle2 size={16} color="#10b981" />
                     <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: colors.textPrimary }}>
-                      5. Grado de Conservación
+                      6. Grado de Conservación
                     </h3>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
@@ -1904,7 +2152,7 @@ export const MitecoView: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <Calendar size={16} color="#0284c7" />
                     <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: colors.textPrimary }}>
-                      6. Calidad de los Datos
+                      7. Calidad de los Datos
                     </h3>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>

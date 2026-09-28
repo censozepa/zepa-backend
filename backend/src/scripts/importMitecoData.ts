@@ -40,7 +40,7 @@ export async function importMitecoData() {
     CREATE TABLE IF NOT EXISTS miteco.directiva_aves_especies (
       sitecode VARCHAR(9),
       speciesname VARCHAR(250),
-      speciescode VARCHAR(4),
+      speciescode VARCHAR(10),
       population_type VARCHAR(1),
       lowerbound INT,
       upperbound INT,
@@ -48,7 +48,9 @@ export async function importMitecoData() {
       abundance_category VARCHAR(1),
       dataquality VARCHAR(2),
       population VARCHAR(14),
-      conservation VARCHAR(1)
+      conservation VARCHAR(1),
+      source_table VARCHAR(30) DEFAULT 'Art. 4',
+      motivation VARCHAR(10)
     );
 
     CREATE INDEX IF NOT EXISTS directiva_aves_sitename_idx ON miteco.directiva_aves(sitename);

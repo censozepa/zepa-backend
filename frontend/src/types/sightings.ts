@@ -120,6 +120,8 @@ export interface ZepaSpeciesRecord {
   dataquality: string | null;
   population?: string | null;
   conservation: string | null;
+  source_table?: string;
+  motivation?: string | null;
 }
 
 export interface ZepasQueryResponse {
