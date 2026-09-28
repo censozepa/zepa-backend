@@ -31,7 +31,7 @@ export async function fetchZepas(): Promise<ZepaZone[]> {
 
 export async function fetchSessions(zepaCode?: string): Promise<SamplingSession[]> {
   const url = new URL(`${API_BASE}/sessions`, window.location.origin);
-  if (zepaCode) {
+  if (zepaCode && zepaCode !== 'ALL') {
     url.searchParams.set('zepaCode', zepaCode);
   }
   const response = await fetch(url.toString(), {
@@ -56,12 +56,12 @@ export async function fetchSightingsGeoJSON(params?: {
 }): Promise<SightingFeatureCollection> {
   const url = new URL(`${API_BASE}/sightings`, window.location.origin);
   url.searchParams.set('format', 'geojson');
-  url.searchParams.set('limit', '500');
+  url.searchParams.set('limit', '1000');
 
   if (params?.species && params.species.trim()) {
     url.searchParams.set('species', params.species.trim());
   }
-  if (params?.zepaCode) {
+  if (params?.zepaCode && params.zepaCode !== 'ALL') {
     url.searchParams.set('zepaCode', params.zepaCode);
   }
   if (params?.sessionNumber !== undefined) {

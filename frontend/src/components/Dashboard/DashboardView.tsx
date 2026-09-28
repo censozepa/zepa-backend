@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Map as MapIcon,
+  Globe2,
   BarChart3,
   Table as TableIcon,
   RefreshCw,
   Bird,
-  MapPin,
-  Search,
+  Compass,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { SamplingSession, SightingFeatureCollection, User, ZepaZone } from '../../types/sightings';
 import { StatsCards } from '../Common/StatsCards';
 import { RecordsTable } from '../Common/RecordsTable';
-import { SightingsMap } from '../Map/SightingsMap';
-import { SessionInspector } from '../Inspector/SessionInspector';
+import { SessionsTable } from '../Common/SessionsTable';
+import { HorizontalBarChart, DonutChart } from '../Charts/Charts';
 import { useTheme } from '../../context/ThemeContext';
 
 interface DashboardViewProps {
@@ -21,12 +21,8 @@ interface DashboardViewProps {
   selectedZepaCode: string;
   onSelectZepa: (code: string) => void;
   sessions: SamplingSession[];
-  activeSessionNum: number | null;
-  onSelectSession: (num: number | null) => void;
   sightingsData: SightingFeatureCollection | null;
   loading: boolean;
-  searchTerm?: string;
-  onSearchChange?: (term: string) => void;
   onRefresh: () => void;
 }
 
@@ -35,35 +31,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   selectedZepaCode,
   onSelectZepa,
   sessions,
-  activeSessionNum,
-  onSelectSession,
   sightingsData,
   loading,
-  searchTerm = '',
-  onSearchChange,
   onRefresh,
 }) => {
   const { colors } = useTheme();
-  const [viewMode, setViewMode] = useState<'map' | 'analytics' | 'table'>('map');
+  // 3 botones requeridos: 'global' (Visión Global), 'stats' (Estadísticas), 'tables' (Tablas)
+  const [activeButton, setActiveButton] = useState<'global' | 'stats' | 'tables'>('global');
+  const [tablesSubTab, setTablesSubTab] = useState<'sightings' | 'sessions' | 'zepas'>('sightings');
 
-  const selectedZepa = zepas.find((z) => z.code === selectedZepaCode) || null;
-  const features = sightingsData?.features || [];
+  const allFeatures = sightingsData?.features || [];
 
-  // Métricas agregadas
-  const stats = useMemo(() => {
-    const totalSightings = features.length;
+  // Filtrado según el desplegable de ZEPA (o 'ALL' para todas)
+  const filteredFeatures = useMemo(() => {
+    if (selectedZepaCode === 'ALL') return allFeatures;
+    return allFeatures.filter((f) => f.properties.zepaCode === selectedZepaCode);
+  }, [allFeatures, selectedZepaCode]);
+
+  const filteredSessions = useMemo(() => {
+    if (selectedZepaCode === 'ALL') return sessions;
+    return sessions.filter((s) => s.zepaCode === selectedZepaCode);
+  }, [sessions, selectedZepaCode]);
+
+  // Métricas agregadas para la selección actual
+  const currentStats = useMemo(() => {
+    const totalSightings = filteredFeatures.length;
     let totalBirds = 0;
     const speciesSet = new Set<string>();
     let alertsCount = 0;
 
-    features.forEach((f) => {
+    filteredFeatures.forEach((f) => {
       totalBirds += f.properties.count || 0;
       if (f.properties.speciesCode) speciesSet.add(f.properties.speciesCode);
       if (f.properties.phenologicalAlert) alertsCount++;
     });
 
-    const totalSessions = sessions.length;
-    const totalDistanceKm = sessions.reduce((acc, s) => acc + (Number(s.distanceKm) || 0), 0);
+    const totalSessions = filteredSessions.length;
+    const totalDistanceKm = filteredSessions.reduce((acc, s) => acc + (Number(s.distanceKm) || 0), 0);
 
     return {
       totalSightings,
@@ -72,35 +76,142 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       totalSessions,
       totalDistanceKm,
       alertsCount,
-      zepasCount: zepas.length,
+      zepasCount: selectedZepaCode === 'ALL' ? zepas.length : 1,
     };
-  }, [features, sessions, zepas]);
+  }, [filteredFeatures, filteredSessions, selectedZepaCode, zepas]);
 
-  // Especies más observadas para la pestaña de analítica
-  const topSpecies = useMemo(() => {
-    const map = new Map<string, { common: string; scientific: string; count: number; sightings: number }>();
-    features.forEach((f) => {
+  // =========================================================================
+  // DATOS PARA GRÁFICAS DE VISIÓN GLOBAL (Consolidado de toda la plataforma)
+  // =========================================================================
+  // 1. Aves por ZEPA (Barras)
+  const birdsByZepaBarData = useMemo(() => {
+    return zepas
+      .map((z) => ({
+        id: z.code,
+        label: z.name,
+        sublabel: z.code,
+        value: z.totalBirds,
+        badge: `${z.totalSightings} obs.`,
+        color: colors.accent,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [zepas, colors.accent]);
+
+  // 2. Distribución porcentual por ZEPA (Donut)
+  const zepaDonutColors = [
+    '#059669', '#0284c7', '#7c3aed', '#d97706', '#dc2626',
+    '#0891b2', '#2563eb', '#16a34a', '#db2777', '#ea580c',
+  ];
+  const birdsByZepaDonutData = useMemo(() => {
+    return zepas
+      .map((z, idx) => ({
+        label: z.name,
+        value: z.totalBirds,
+        color: zepaDonutColors[idx % zepaDonutColors.length],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [zepas]);
+
+  // 3. Top 10 Especies más abundantes en la plataforma (Barras)
+  const topSpeciesBarData = useMemo(() => {
+    const map = new Map<string, { common: string; scientific: string; count: number }>();
+    allFeatures.forEach((f) => {
       const p = f.properties;
       const key = p.speciesCode || p.commonName || p.speciesName;
       const existing = map.get(key) || {
         common: p.commonName || p.speciesName,
         scientific: p.scientificName || '',
         count: 0,
-        sightings: 0,
       };
       existing.count += p.count || 1;
-      existing.sightings += 1;
       map.set(key, existing);
     });
 
-    return Array.from(map.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [features]);
+    return Array.from(map.entries())
+      .map(([id, val]) => ({
+        id,
+        label: val.common,
+        sublabel: val.scientific,
+        value: val.count,
+        color: '#0284c7',
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [allFeatures]);
+
+  // 4. Estado Fenológico (Donut)
+  const alertsDonutData = useMemo(() => {
+    let normalCount = 0;
+    let alertCount = 0;
+    allFeatures.forEach((f) => {
+      if (f.properties.phenologicalAlert) {
+        alertCount += f.properties.count || 1;
+      } else {
+        normalCount += f.properties.count || 1;
+      }
+    });
+
+    return [
+      { label: 'Normal / Esperado', value: normalCount, color: '#10b981' },
+      { label: 'Alerta Fenológica', value: alertCount, color: '#ef4444' },
+    ];
+  }, [allFeatures]);
+
+  // 5. Esfuerzo de Muestreo (Km de transectos por ZEPA)
+  const distanceByZepaBarData = useMemo(() => {
+    const map = new Map<string, { name: string; km: number; sessions: number }>();
+    zepas.forEach((z) => map.set(z.code, { name: z.name, km: 0, sessions: 0 }));
+
+    sessions.forEach((s) => {
+      const entry = map.get(s.zepaCode) || { name: s.zepaCode, km: 0, sessions: 0 };
+      entry.km += Number(s.distanceKm) || 0;
+      entry.sessions += 1;
+      map.set(s.zepaCode, entry);
+    });
+
+    return Array.from(map.entries())
+      .map(([code, val]) => ({
+        id: code,
+        label: val.name,
+        sublabel: code,
+        value: parseFloat(val.km.toFixed(1)),
+        badge: `${val.sessions} sesiones`,
+        color: '#7c3aed',
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [zepas, sessions]);
+
+  // =========================================================================
+  // DATOS PARA PESTAÑA ESTADÍSTICAS (Filtradas según selección ZEPA o Todas)
+  // =========================================================================
+  const filteredSpeciesBarData = useMemo(() => {
+    const map = new Map<string, { common: string; scientific: string; count: number }>();
+    filteredFeatures.forEach((f) => {
+      const p = f.properties;
+      const key = p.speciesCode || p.commonName || p.speciesName;
+      const existing = map.get(key) || {
+        common: p.commonName || p.speciesName,
+        scientific: p.scientificName || '',
+        count: 0,
+      };
+      existing.count += p.count || 1;
+      map.set(key, existing);
+    });
+
+    return Array.from(map.entries())
+      .map(([id, val]) => ({
+        id,
+        label: val.common,
+        sublabel: val.scientific,
+        value: val.count,
+        color: colors.accent,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredFeatures, colors.accent]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Cabecera y controles del Dashboard */}
+      {/* Cabecera y los 3 botones principales */}
       <div
         style={{
           padding: '16px 24px',
@@ -117,7 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: colors.textPrimary }}>
-              Dashboard Global
+              Dashboard
             </h1>
             <span
               style={{
@@ -133,12 +244,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
           </div>
           <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: colors.textSecondary }}>
-            Estadísticas y avistamientos consolidados desde la App Android.
+            Panel de control y analítica de datos sincronizados desde la App de Android.
           </p>
         </div>
 
-        {/* Pestañas de modo de vista */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Los 3 botones requeridos y el desplegable */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Botones de navegación: Visión Global, Estadísticas, Tablas */}
           <div
             style={{
               display: 'flex',
@@ -148,39 +260,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               border: `1px solid ${colors.cardBorder}`,
             }}
           >
+            {/* 1. Visión Global */}
             <button
-              onClick={() => setViewMode('map')}
+              onClick={() => setActiveButton('global')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 14px',
+                padding: '7px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: viewMode === 'map' ? colors.accent : 'transparent',
-                color: viewMode === 'map' ? '#ffffff' : colors.textSecondary,
-                fontSize: '13px',
+                backgroundColor: activeButton === 'global' ? colors.accent : 'transparent',
+                color: activeButton === 'global' ? '#ffffff' : colors.textSecondary,
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
             >
-              <MapIcon size={16} />
-              <span>Mapa & Muestreos</span>
+              <Globe2 size={16} />
+              <span>Visión Global</span>
             </button>
 
+            {/* 2. Estadísticas */}
             <button
-              onClick={() => setViewMode('analytics')}
+              onClick={() => setActiveButton('stats')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 14px',
+                padding: '7px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: viewMode === 'analytics' ? colors.accent : 'transparent',
-                color: viewMode === 'analytics' ? '#ffffff' : colors.textSecondary,
-                fontSize: '13px',
+                backgroundColor: activeButton === 'stats' ? colors.accent : 'transparent',
+                color: activeButton === 'stats' ? '#ffffff' : colors.textSecondary,
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -190,29 +304,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>Estadísticas</span>
             </button>
 
+            {/* 3. Tablas */}
             <button
-              onClick={() => setViewMode('table')}
+              onClick={() => setActiveButton('tables')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 14px',
+                padding: '7px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                backgroundColor: viewMode === 'table' ? colors.accent : 'transparent',
-                color: viewMode === 'table' ? '#ffffff' : colors.textSecondary,
-                fontSize: '13px',
+                backgroundColor: activeButton === 'tables' ? colors.accent : 'transparent',
+                color: activeButton === 'tables' ? '#ffffff' : colors.textSecondary,
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
             >
               <TableIcon size={16} />
-              <span>Tabla ({features.length})</span>
+              <span>Tablas</span>
             </button>
           </div>
 
-          {/* Selector de ZEPA */}
+          {/* Desplegable de ZEPAs con opción 'Todas' (presente en Estadísticas y Tablas, o siempre accesible) */}
           <select
             value={selectedZepaCode}
             onChange={(e) => onSelectZepa(e.target.value)}
@@ -225,8 +340,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               fontSize: '13px',
               fontWeight: 600,
               outline: 'none',
+              cursor: 'pointer',
             }}
           >
+            <option value="ALL">🌐 Todas las ZEPAs ({zepas.length})</option>
             {zepas.map((z) => (
               <option key={z.code} value={z.code}>
                 📍 {z.name} ({z.code})
@@ -234,41 +351,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             ))}
           </select>
 
-          {/* Campo de búsqueda rápida */}
-          {onSearchChange && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '8px',
-                padding: '6px 10px',
-                gap: '6px',
-              }}
-            >
-              <Search size={15} color={colors.textSecondary} />
-              <input
-                type="text"
-                placeholder="Filtrar por ave..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                style={{
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  outline: 'none',
-                  fontSize: '13px',
-                  color: colors.textPrimary,
-                  width: '130px',
-                }}
-              />
-            </div>
-          )}
-
           {/* Botón Refrescar */}
           <button
             onClick={onRefresh}
-            title="Refrescar datos"
+            title="Refrescar datos de la plataforma"
             style={{
               padding: '8px',
               borderRadius: '8px',
@@ -286,109 +372,150 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Contenido principal según el modo de vista */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {/* MODO 1: MAPA Y MUESTREOS */}
-        {viewMode === 'map' && (
-          <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
-            <main style={{ flex: 1, position: 'relative', height: '100%' }}>
-              <SightingsMap
-                data={sightingsData}
-                selectedZepa={selectedZepa}
-                loading={loading}
-                onSelectSession={(num) => onSelectSession(num)}
-              />
-            </main>
-            <SessionInspector
-              selectedZepa={selectedZepa}
-              sessions={sessions}
-              activeSessionNum={activeSessionNum}
-              onSelectSession={(num) => onSelectSession(num)}
-              sightingsData={sightingsData}
+      {/* ===================================================================== */}
+      {/* CUERPO PRINCIPAL SEGÚN EL BOTÓN ACTIVO                                */}
+      {/* ===================================================================== */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        {/* ------------------------------------------------------------------- */}
+        {/* BOTÓN 1: VISIÓN GLOBAL (Gráficas de todas las ZEPAs y aves)          */}
+        {/* ------------------------------------------------------------------- */}
+        {activeButton === 'global' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            {/* Resumen KPI Global */}
+            <StatsCards
+              totalSightings={allFeatures.length}
+              totalBirds={zepas.reduce((acc, z) => acc + z.totalBirds, 0)}
+              uniqueSpecies={topSpeciesBarData.length}
+              totalSessions={sessions.length}
+              totalDistanceKm={sessions.reduce((acc, s) => acc + (Number(s.distanceKm) || 0), 0)}
+              alertsCount={allFeatures.filter((f) => f.properties.phenologicalAlert).length}
+              zepasCount={zepas.length}
             />
+
+            {/* Fila 1 de Gráficas: Barras de Aves por ZEPA + Donut de Distribución */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+              <HorizontalBarChart
+                data={birdsByZepaBarData}
+                title="Censo de Aves por Espacio ZEPA"
+                subtitle="Total acumulado de ejemplares observados en cada zona de la Red Natura 2000"
+                valueSuffix="aves"
+                maxBars={10}
+              />
+
+              <DonutChart
+                data={birdsByZepaDonutData}
+                title="Distribución Porcentual del Censo"
+                subtitle="Proporción del volumen de avifauna registrada entre ZEPAs"
+                centerLabel="Total Aves"
+                centerValue={zepas.reduce((acc, z) => acc + z.totalBirds, 0)}
+                size={190}
+              />
+            </div>
+
+            {/* Fila 2 de Gráficas: Top Especies + Alertas Fenológicas */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+              <HorizontalBarChart
+                data={topSpeciesBarData}
+                title="Top 10 Especies con Mayor Conteo de Ejemplares"
+                subtitle="Especies de aves más censadas en el conjunto de todas las ZEPAs"
+                valueSuffix="ejemplares"
+                maxBars={10}
+              />
+
+              <DonutChart
+                data={alertsDonutData}
+                title="Detección de Alertas Fenológicas"
+                subtitle="Observaciones en fechas habituales vs anomalías reproductivas o migratorias"
+                centerLabel="Observaciones"
+                centerValue={allFeatures.length}
+                size={190}
+              />
+            </div>
+
+            {/* Fila 3: Esfuerzo de Muestreo (Km recorridos por ZEPA) */}
+            <div>
+              <HorizontalBarChart
+                data={distanceByZepaBarData}
+                title="Esfuerzo de Muestreo en Campo (Distancia en Km por ZEPA)"
+                subtitle="Longitud total de transectos de censo GPS recorridos por los ornitólogos"
+                valueSuffix="km"
+                maxBars={10}
+              />
+            </div>
           </div>
         )}
 
-        {/* MODO 2: ESTADÍSTICAS Y ANALÍTICA */}
-        {viewMode === 'analytics' && (
-          <div style={{ height: '100%', overflowY: 'auto', padding: '24px' }}>
-            {/* Tarjetas KPI */}
-            <StatsCards
-              totalSightings={stats.totalSightings}
-              totalBirds={stats.totalBirds}
-              uniqueSpecies={stats.uniqueSpecies}
-              totalSessions={stats.totalSessions}
-              totalDistanceKm={stats.totalDistanceKm}
-              alertsCount={stats.alertsCount}
-              zepasCount={stats.zepasCount}
-            />
-
-            {/* Cuadrícula de Análisis */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
-              {/* Especies Más Observadas */}
-              <div
-                style={{
-                  backgroundColor: colors.cardBg,
-                  borderRadius: '16px',
-                  padding: '22px',
-                  border: `1px solid ${colors.cardBorder}`,
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <Bird size={20} color={colors.accent} />
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: colors.textPrimary }}>
-                    Especies con Mayor Registro de Ejemplares
-                  </h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {topSpecies.map((sp, idx) => {
-                    const maxCount = topSpecies[0]?.count || 1;
-                    const percentage = Math.round((sp.count / maxCount) * 100);
-
-                    return (
-                      <div key={idx}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '5px' }}>
-                          <div>
-                            <strong style={{ color: colors.textPrimary }}>{sp.common}</strong>{' '}
-                            {sp.scientific && (
-                              <span style={{ fontStyle: 'italic', color: colors.textSecondary, fontSize: '11.5px' }}>
-                                ({sp.scientific})
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontWeight: 700, color: colors.accent }}>
-                            {sp.count} ejemplares <span style={{ color: colors.textSecondary, fontWeight: 400, fontSize: '11px' }}>({sp.sightings} obs.)</span>
-                          </div>
-                        </div>
-
-                        {/* Barra de progreso */}
-                        <div
-                          style={{
-                            height: '8px',
-                            backgroundColor: colors.mainBg,
-                            borderRadius: '4px',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${percentage}%`,
-                              height: '100%',
-                              backgroundColor: colors.accent,
-                              borderRadius: '4px',
-                              transition: 'width 0.4s ease',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        {/* ------------------------------------------------------------------- */}
+        {/* BOTÓN 2: ESTADÍSTICAS (Detalle con desplegable ZEPA o Todas)        */}
+        {/* ------------------------------------------------------------------- */}
+        {activeButton === 'stats' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            <div
+              style={{
+                backgroundColor: colors.cardBg,
+                borderRadius: '14px',
+                padding: '14px 20px',
+                border: `1px solid ${colors.cardBorder}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <strong style={{ fontSize: '15px', color: colors.textPrimary }}>
+                  Filtro activo:{' '}
+                  <span style={{ color: colors.accent }}>
+                    {selectedZepaCode === 'ALL'
+                      ? 'Todas las ZEPAs registradas (10)'
+                      : zepas.find((z) => z.code === selectedZepaCode)?.name || selectedZepaCode}
+                  </span>
+                </strong>
+                <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: colors.textSecondary }}>
+                  Estadísticas cuantitativas y desglose ornitológico según la zona seleccionada en el desplegable.
+                </p>
               </div>
 
-              {/* Distribución por ZEPAs */}
+              {selectedZepaCode !== 'ALL' && (
+                <button
+                  onClick={() => onSelectZepa('ALL')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    border: `1px solid ${colors.cardBorder}`,
+                    backgroundColor: colors.mainBg,
+                    color: colors.textPrimary,
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Ver Todas
+                </button>
+              )}
+            </div>
+
+            {/* Tarjetas KPI de la selección */}
+            <StatsCards
+              totalSightings={currentStats.totalSightings}
+              totalBirds={currentStats.totalBirds}
+              uniqueSpecies={currentStats.uniqueSpecies}
+              totalSessions={currentStats.totalSessions}
+              totalDistanceKm={currentStats.totalDistanceKm}
+              alertsCount={currentStats.alertsCount}
+              zepasCount={currentStats.zepasCount}
+            />
+
+            {/* Gráfica de especies en la selección */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+              <HorizontalBarChart
+                data={filteredSpeciesBarData}
+                title={`Especies Registradas (${selectedZepaCode === 'ALL' ? 'Todas las ZEPAs' : selectedZepaCode})`}
+                subtitle={`${filteredSpeciesBarData.length} taxones distintos detectados en campo`}
+                valueSuffix="aves"
+                maxBars={12}
+              />
+
+              {/* Sesiones y transectos en la selección */}
               <div
                 style={{
                   backgroundColor: colors.cardBg,
@@ -399,62 +526,251 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <MapPin size={20} color={colors.accent} />
+                  <Compass size={20} color={colors.accent} />
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: colors.textPrimary }}>
-                    Resumen por Zona de Especial Protección (ZEPA)
+                    Transectos de Censo ({filteredSessions.length} sesiones)
                   </h3>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '340px', overflowY: 'auto' }}>
-                  {zepas.map((z) => (
-                    <div
-                      key={z.code}
-                      onClick={() => onSelectZepa(z.code)}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '10px',
-                        backgroundColor: z.code === selectedZepaCode ? colors.accentBg : colors.mainBg,
-                        border: `1px solid ${z.code === selectedZepaCode ? colors.accent : colors.cardBorder}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.15s ease',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: colors.textPrimary }}>
-                          {z.name}
+                {filteredSessions.length === 0 ? (
+                  <div style={{ padding: '30px', textAlign: 'center', color: colors.textSecondary }}>
+                    No hay sesiones registradas para la ZEPA seleccionada.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
+                    {filteredSessions.map((s) => (
+                      <div
+                        key={s.id}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '10px',
+                          backgroundColor: colors.mainBg,
+                          border: `1px solid ${colors.cardBorder}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: colors.textPrimary }}>
+                            Sesión #{s.sessionNumber} · <span style={{ color: colors.accent }}>{s.zepaCode}</span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: colors.textSecondary }}>
+                            {new Date(s.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })} · {s.distanceKm} km · {s.userFullName || s.userEmail || 'Ornitólogo'}
+                          </div>
                         </div>
-                        <div style={{ fontSize: '11px', color: colors.textSecondary }}>
-                          Código: {z.code}
-                        </div>
-                      </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: colors.accent }}>
-                          {z.totalBirds} aves ({z.totalSightings} obs.)
-                        </div>
-                        <div style={{ fontSize: '11px', color: colors.textSecondary }}>
-                          {z.uniqueSpecies} especies · {z.totalSessions} sesiones
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: colors.textPrimary }}>
+                            {s.totalBirds} aves ({s.uniqueSpecies} esp.)
+                          </div>
+                          <div style={{ fontSize: '11px', color: colors.textSecondary }}>
+                            {s.sightingCount} observaciones
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* MODO 3: TABLA DE REGISTROS */}
-        {viewMode === 'table' && (
-          <div style={{ height: '100%', overflowY: 'auto', padding: '20px' }}>
-            <RecordsTable
-              features={features}
-              title="Registros Globales de la Plataforma"
-              subtitle="Conjunto completo de observaciones sincronizadas desde todos los dispositivos móviles."
-            />
+        {/* ------------------------------------------------------------------- */}
+        {/* BOTÓN 3: TABLAS (Con desplegable ZEPA o Todas)                      */}
+        {/* ------------------------------------------------------------------- */}
+        {activeButton === 'tables' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Sub-selector de Tablas */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                backgroundColor: colors.cardBg,
+                padding: '12px 18px',
+                borderRadius: '14px',
+                border: `1px solid ${colors.cardBorder}`,
+              }}
+            >
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setTablesSubTab('sightings')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: tablesSubTab === 'sightings' ? colors.accent : colors.mainBg,
+                    color: tablesSubTab === 'sightings' ? '#ffffff' : colors.textSecondary,
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Bird size={15} />
+                  <span>Avistamientos ({filteredFeatures.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setTablesSubTab('sessions')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: tablesSubTab === 'sessions' ? colors.accent : colors.mainBg,
+                    color: tablesSubTab === 'sessions' ? '#ffffff' : colors.textSecondary,
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Compass size={15} />
+                  <span>Sesiones / Transectos ({filteredSessions.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setTablesSubTab('zepas')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: tablesSubTab === 'zepas' ? colors.accent : colors.mainBg,
+                    color: tablesSubTab === 'zepas' ? '#ffffff' : colors.textSecondary,
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <FileSpreadsheet size={15} />
+                  <span>Resumen ZEPAs ({zepas.length})</span>
+                </button>
+              </div>
+
+              <span style={{ fontSize: '12px', color: colors.textSecondary, fontWeight: 500 }}>
+                Filtrado por:{' '}
+                <strong>
+                  {selectedZepaCode === 'ALL'
+                    ? 'Todas las ZEPAs'
+                    : zepas.find((z) => z.code === selectedZepaCode)?.name || selectedZepaCode}
+                </strong>
+              </span>
+            </div>
+
+            {/* TABLA 1: AVISTAMIENTOS */}
+            {tablesSubTab === 'sightings' && (
+              <RecordsTable
+                features={filteredFeatures}
+                title={`Tabla de Avistamientos (${selectedZepaCode === 'ALL' ? 'Todas las ZEPAs' : selectedZepaCode})`}
+                subtitle="Listado exhaustivo de observaciones capturadas por ornitólogos con la App Android."
+              />
+            )}
+
+            {/* TABLA 2: SESIONES */}
+            {tablesSubTab === 'sessions' && (
+              <SessionsTable
+                sessions={filteredSessions}
+                title={`Tabla de Sesiones y Transectos GPS (${selectedZepaCode === 'ALL' ? 'Todas las ZEPAs' : selectedZepaCode})`}
+                subtitle="Muestreos geolocalizados con duración, distancia y esfuerzo de observación."
+              />
+            )}
+
+            {/* TABLA 3: RESUMEN ZEPAS */}
+            {tablesSubTab === 'zepas' && (
+              <div
+                style={{
+                  backgroundColor: colors.cardBg,
+                  borderRadius: '16px',
+                  border: `1px solid ${colors.cardBorder}`,
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: colors.textPrimary }}>
+                    Tabla Comparativa de las 10 ZEPAs
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: colors.textSecondary }}>
+                    Balance general de datos ornitológicos por espacio protegido.
+                  </p>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: colors.tableHeaderBg, borderBottom: `1px solid ${colors.cardBorder}` }}>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Código</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Nombre de la ZEPA</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Total Sesiones</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Avistamientos</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Total Aves Censadas</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Especies Únicas</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Alertas</th>
+                        <th style={{ padding: '12px 16px', color: colors.textSecondary, fontWeight: 600 }}>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {zepas.map((z) => (
+                        <tr
+                          key={z.code}
+                          style={{
+                            borderBottom: `1px solid ${colors.cardBorder}`,
+                            backgroundColor: z.code === selectedZepaCode ? colors.accentBg : 'transparent',
+                          }}
+                        >
+                          <td style={{ padding: '12px 16px', fontWeight: 700, color: colors.accent }}>{z.code}</td>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: colors.textPrimary }}>{z.name}</td>
+                          <td style={{ padding: '12px 16px', color: colors.textSecondary }}>{z.totalSessions}</td>
+                          <td style={{ padding: '12px 16px', color: colors.textSecondary }}>{z.totalSightings}</td>
+                          <td style={{ padding: '12px 16px', fontWeight: 800, color: colors.textPrimary }}>{z.totalBirds}</td>
+                          <td style={{ padding: '12px 16px', color: colors.textSecondary }}>{z.uniqueSpecies}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            {z.alertsCount > 0 ? (
+                              <span style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                                {z.alertsCount}
+                              </span>
+                            ) : (
+                              <span style={{ color: colors.textSecondary, fontSize: '11px' }}>0</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <button
+                              onClick={() => {
+                                onSelectZepa(z.code);
+                                setActiveButton('stats');
+                              }}
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                border: `1px solid ${colors.cardBorder}`,
+                                backgroundColor: colors.cardBg,
+                                color: colors.accent,
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Ver Estadísticas
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

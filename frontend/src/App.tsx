@@ -31,13 +31,13 @@ export const App: React.FC = () => {
 
   // Datos globales
   const [zepas, setZepas] = useState<ZepaZone[]>([]);
-  const [selectedZepaCode, setSelectedZepaCode] = useState<string>('ES0000365');
+  const [selectedZepaCode, setSelectedZepaCode] = useState<string>('ALL');
   const [sessions, setSessions] = useState<SamplingSession[]>([]);
   const [activeSessionNum, setActiveSessionNum] = useState<number | null>(null);
 
   const [data, setData] = useState<SightingFeatureCollection | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const searchTerm = '';
 
   // 1. Cargar ZEPAs asignadas al Tenant del usuario
   const loadZepas = useCallback(async () => {
@@ -45,8 +45,8 @@ export const App: React.FC = () => {
     try {
       const zepaList = await fetchZepas();
       setZepas(zepaList);
-      if (zepaList.length > 0 && !zepaList.some((z) => z.code === selectedZepaCode)) {
-        setSelectedZepaCode(zepaList[0].code);
+      if (selectedZepaCode !== 'ALL' && zepaList.length > 0 && !zepaList.some((z) => z.code === selectedZepaCode)) {
+        setSelectedZepaCode('ALL');
       }
     } catch (e) {
       console.error('Error cargando ZEPAs', e);
@@ -177,17 +177,10 @@ export const App: React.FC = () => {
             user={user}
             zepas={zepas}
             selectedZepaCode={selectedZepaCode}
-            onSelectZepa={(code) => {
-              setSelectedZepaCode(code);
-              setActiveSessionNum(null);
-            }}
+            onSelectZepa={(code) => setSelectedZepaCode(code)}
             sessions={sessions}
-            activeSessionNum={activeSessionNum}
-            onSelectSession={(num) => setActiveSessionNum(num)}
             sightingsData={data}
             loading={loading}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
             onRefresh={() => {
               loadZepas();
               loadSessions(selectedZepaCode);
@@ -201,13 +194,8 @@ export const App: React.FC = () => {
             user={user}
             zepas={zepas}
             selectedZepaCode={selectedZepaCode}
-            onSelectZepa={(code) => {
-              setSelectedZepaCode(code);
-              setActiveSessionNum(null);
-            }}
+            onSelectZepa={(code) => setSelectedZepaCode(code)}
             sessions={sessions}
-            activeSessionNum={activeSessionNum}
-            onSelectSession={(num) => setActiveSessionNum(num)}
             sightingsData={data}
             loading={loading}
             onRefresh={() => {
