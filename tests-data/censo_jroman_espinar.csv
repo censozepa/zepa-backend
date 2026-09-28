@@ -1,0 +1,81 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+jroman.espinar@gmail.com;201;ES0000024;1789027200000;1789040700000;5.5;A048;Phoenicopterus roseus;Flamenco común;1789029900000;30;false
+jroman.espinar@gmail.com;201;ES0000024;1789027200000;1789040700000;5.5;A083;Aquila adalberti;Águila imperial ibérica;1789032600000;5;false
+jroman.espinar@gmail.com;201;ES0000024;1789027200000;1789040700000;5.5;A060;Oxyura leucocephala;Malvasía cabeciblanca;1789035300000;3;false
+jroman.espinar@gmail.com;201;ES0000024;1789027200000;1789040700000;5.5;A059;Marmaronetta angustirostris;Cerceta pardilla;1789038000000;2;false
+jroman.espinar@gmail.com;202;ES0000024;1789117200000;1789130700000;6.2;A060;Oxyura leucocephala;Malvasía cabeciblanca;1789119900000;9;false
+jroman.espinar@gmail.com;202;ES0000024;1789117200000;1789130700000;6.2;A059;Marmaronetta angustirostris;Cerceta pardilla;1789122600000;1;false
+jroman.espinar@gmail.com;202;ES0000024;1789117200000;1789130700000;6.2;A081;Circus aeruginosus;Aguilucho lagunero;1789125300000;1;false
+jroman.espinar@gmail.com;202;ES0000024;1789117200000;1789130700000;6.2;A032;Plegadis falcinellus;Morito común;1789128000000;15;false
+jroman.espinar@gmail.com;203;ES0000024;1789207200000;1789220700000;6.9;A081;Circus aeruginosus;Aguilucho lagunero;1789209900000;1;false
+jroman.espinar@gmail.com;203;ES0000024;1789207200000;1789220700000;6.9;A032;Plegadis falcinellus;Morito común;1789212600000;14;false
+jroman.espinar@gmail.com;203;ES0000024;1789207200000;1789220700000;6.9;A034;Platalea leucorodia;Espátula común;1789215300000;11;false
+jroman.espinar@gmail.com;203;ES0000024;1789207200000;1789220700000;6.9;A029;Ardea purpurea;Garza imperial;1789218000000;5;false
+jroman.espinar@gmail.com;204;ES0000024;1789297200000;1789310700000;7.6;A034;Platalea leucorodia;Espátula común;1789299900000;10;false
+jroman.espinar@gmail.com;204;ES0000024;1789297200000;1789310700000;7.6;A029;Ardea purpurea;Garza imperial;1789302600000;4;false
+jroman.espinar@gmail.com;204;ES0000024;1789297200000;1789310700000;7.6;A048;Phoenicopterus roseus;Flamenco común;1789305300000;28;false
+jroman.espinar@gmail.com;204;ES0000024;1789297200000;1789310700000;7.6;A083;Aquila adalberti;Águila imperial ibérica;1789308000000;3;false
+jroman.espinar@gmail.com;205;ES0000033;1789372800000;1789386300000;4.8;A089;Aegypius monachus;Buitre negro;1789375500000;13;false
+jroman.espinar@gmail.com;205;ES0000033;1789372800000;1789386300000;4.8;A030;Ciconia nigra;Cigüeña negra;1789378200000;3;false
+jroman.espinar@gmail.com;205;ES0000033;1789372800000;1789386300000;4.8;A083;Aquila adalberti;Águila imperial ibérica;1789380900000;3;false
+jroman.espinar@gmail.com;205;ES0000033;1789372800000;1789386300000;4.8;A077;Neophron percnopterus;Alimoche común;1789383600000;6;false
+jroman.espinar@gmail.com;206;ES0000033;1789462800000;1789476300000;5.5;A083;Aquila adalberti;Águila imperial ibérica;1789465500000;2;false
+jroman.espinar@gmail.com;206;ES0000033;1789462800000;1789476300000;5.5;A077;Neophron percnopterus;Alimoche común;1789468200000;5;false
+jroman.espinar@gmail.com;206;ES0000033;1789462800000;1789476300000;5.5;A215;Bubo bubo;Búho real;1789470900000;3;false
+jroman.espinar@gmail.com;206;ES0000033;1789462800000;1789476300000;5.5;A086;Gyps fulvus;Buitre leonado;1789473600000;35;false
+jroman.espinar@gmail.com;207;ES0000033;1789552800000;1789566300000;6.2;A215;Bubo bubo;Búho real;1789555500000;2;false
+jroman.espinar@gmail.com;207;ES0000033;1789552800000;1789566300000;6.2;A086;Gyps fulvus;Buitre leonado;1789558200000;34;false
+jroman.espinar@gmail.com;207;ES0000033;1789552800000;1789566300000;6.2;A093;Hieraaetus fasciatus;Águila azor perdicera;1789560900000;5;true
+jroman.espinar@gmail.com;207;ES0000033;1789552800000;1789566300000;6.2;A103;Falco peregrinus;Halcón peregrino;1789563600000;1;false
+jroman.espinar@gmail.com;208;ES0000033;1789642800000;1789656300000;6.9;A093;Hieraaetus fasciatus;Águila azor perdicera;1789645500000;4;true
+jroman.espinar@gmail.com;208;ES0000033;1789642800000;1789656300000;6.9;A103;Falco peregrinus;Halcón peregrino;1789648200000;5;false
+jroman.espinar@gmail.com;208;ES0000033;1789642800000;1789656300000;6.9;A089;Aegypius monachus;Buitre negro;1789650900000;11;false
+jroman.espinar@gmail.com;208;ES0000033;1789642800000;1789656300000;6.9;A030;Ciconia nigra;Cigüeña negra;1789653600000;1;false
+jroman.espinar@gmail.com;209;ES0000018;1789718400000;1789731900000;7.6;A056;Aythya ferina;Porrón común;1789721100000;21;false
+jroman.espinar@gmail.com;209;ES0000018;1789718400000;1789731900000;7.6;A058;Netta rufina;Pato colorado;1789723800000;19;false
+jroman.espinar@gmail.com;209;ES0000018;1789718400000;1789731900000;7.6;A060;Oxyura leucocephala;Malvasía cabeciblanca;1789726500000;6;false
+jroman.espinar@gmail.com;209;ES0000018;1789718400000;1789731900000;7.6;A021;Botaurus stellaris;Avetoro común;1789729200000;1;false
+jroman.espinar@gmail.com;210;ES0000018;1789808400000;1789821900000;4.8;A060;Oxyura leucocephala;Malvasía cabeciblanca;1789811100000;5;false
+jroman.espinar@gmail.com;210;ES0000018;1789808400000;1789821900000;4.8;A021;Botaurus stellaris;Avetoro común;1789813800000;1;false
+jroman.espinar@gmail.com;210;ES0000018;1789808400000;1789821900000;4.8;A023;Ixobrychus minutus;Avetorillo común;1789816500000;2;false
+jroman.espinar@gmail.com;210;ES0000018;1789808400000;1789821900000;4.8;A131;Himantopus himantopus;Cigüeñuela común;1789819200000;15;false
+jroman.espinar@gmail.com;211;ES0000018;1789898400000;1789911900000;5.5;A023;Ixobrychus minutus;Avetorillo común;1789901100000;1;false
+jroman.espinar@gmail.com;211;ES0000018;1789898400000;1789911900000;5.5;A131;Himantopus himantopus;Cigüeñuela común;1789903800000;14;false
+jroman.espinar@gmail.com;211;ES0000018;1789898400000;1789911900000;5.5;A028;Ardea cinerea;Garza real;1789906500000;9;false
+jroman.espinar@gmail.com;211;ES0000018;1789898400000;1789911900000;5.5;A081;Circus aeruginosus;Aguilucho lagunero;1789909200000;3;false
+jroman.espinar@gmail.com;212;ES0000018;1789988400000;1790001900000;6.2;A028;Ardea cinerea;Garza real;1789991100000;8;false
+jroman.espinar@gmail.com;212;ES0000018;1789988400000;1790001900000;6.2;A081;Circus aeruginosus;Aguilucho lagunero;1789993800000;2;false
+jroman.espinar@gmail.com;212;ES0000018;1789988400000;1790001900000;6.2;A056;Aythya ferina;Porrón común;1789996500000;19;false
+jroman.espinar@gmail.com;212;ES0000018;1789988400000;1790001900000;6.2;A058;Netta rufina;Pato colorado;1789999200000;24;false
+jroman.espinar@gmail.com;213;ES0000015;1790064000000;1790077500000;6.9;A127;Grus grus;Grulla común;1790066700000;45;false
+jroman.espinar@gmail.com;213;ES0000015;1790064000000;1790077500000;6.9;A129;Otis tarda;Avutarda común;1790069400000;12;false
+jroman.espinar@gmail.com;213;ES0000015;1790064000000;1790077500000;6.9;A128;Tetrax tetrax;Sisón común;1790072100000;7;true
+jroman.espinar@gmail.com;213;ES0000015;1790064000000;1790077500000;6.9;A420;Pterocles orientalis;Ganga ortega;1790074800000;11;false
+jroman.espinar@gmail.com;214;ES0000015;1790154000000;1790167500000;7.6;A128;Tetrax tetrax;Sisón común;1790156700000;6;true
+jroman.espinar@gmail.com;214;ES0000015;1790154000000;1790167500000;7.6;A420;Pterocles orientalis;Ganga ortega;1790159400000;10;false
+jroman.espinar@gmail.com;214;ES0000015;1790154000000;1790167500000;7.6;A082;Circus cyaneus;Aguilucho pálido;1790162100000;5;false
+jroman.espinar@gmail.com;214;ES0000015;1790154000000;1790167500000;7.6;A132;Recurvirostra avosetta;Avoceta común;1790164800000;11;false
+jroman.espinar@gmail.com;215;ES0000015;1790244000000;1790257500000;4.8;A082;Circus cyaneus;Aguilucho pálido;1790246700000;4;false
+jroman.espinar@gmail.com;215;ES0000015;1790244000000;1790257500000;4.8;A132;Recurvirostra avosetta;Avoceta común;1790249400000;17;false
+jroman.espinar@gmail.com;215;ES0000015;1790244000000;1790257500000;4.8;A067;Tadorna tadorna;Tarro blanco;1790252100000;9;false
+jroman.espinar@gmail.com;215;ES0000015;1790244000000;1790257500000;4.8;A142;Vanellus vanellus;Avefría europea;1790254800000;24;false
+jroman.espinar@gmail.com;216;ES0000015;1790334000000;1790347500000;5.5;A067;Tadorna tadorna;Tarro blanco;1790336700000;15;false
+jroman.espinar@gmail.com;216;ES0000015;1790334000000;1790347500000;5.5;A142;Vanellus vanellus;Avefría europea;1790339400000;23;false
+jroman.espinar@gmail.com;216;ES0000015;1790334000000;1790347500000;5.5;A127;Grus grus;Grulla común;1790342100000;43;false
+jroman.espinar@gmail.com;216;ES0000015;1790334000000;1790347500000;5.5;A129;Otis tarda;Avutarda común;1790344800000;10;false
+jroman.espinar@gmail.com;217;ES0000039;1790409600000;1790423100000;6.2;A087;Gypaetus barbatus;Quebrantahuesos;1790412300000;1;true
+jroman.espinar@gmail.com;217;ES0000039;1790409600000;1790423100000;6.2;A089;Aegypius monachus;Buitre negro;1790415000000;7;false
+jroman.espinar@gmail.com;217;ES0000039;1790409600000;1790423100000;6.2;A103;Falco peregrinus;Halcón peregrino;1790417700000;1;false
+jroman.espinar@gmail.com;217;ES0000039;1790409600000;1790423100000;6.2;A281;Monticola solitarius;Roquero solitario;1790420400000;3;false
+jroman.espinar@gmail.com;218;ES0000039;1790499600000;1790513100000;6.9;A103;Falco peregrinus;Halcón peregrino;1790502300000;1;false
+jroman.espinar@gmail.com;218;ES0000039;1790499600000;1790513100000;6.9;A281;Monticola solitarius;Roquero solitario;1790505000000;2;false
+jroman.espinar@gmail.com;218;ES0000039;1790499600000;1790513100000;6.9;A346;Pyrrhocorax pyrrhocorax;Chova piquirroja;1790507700000;18;false
+jroman.espinar@gmail.com;218;ES0000039;1790499600000;1790513100000;6.9;A338;Lanius excubitor;Alcaudón real;1790510400000;3;false
+jroman.espinar@gmail.com;219;ES0000039;1790589600000;1790603100000;7.6;A346;Pyrrhocorax pyrrhocorax;Chova piquirroja;1790592300000;17;false
+jroman.espinar@gmail.com;219;ES0000039;1790589600000;1790603100000;7.6;A338;Lanius excubitor;Alcaudón real;1790595000000;2;false
+jroman.espinar@gmail.com;219;ES0000039;1790589600000;1790603100000;7.6;A091;Circaetus gallicus;Culebrera europea;1790597700000;3;false
+jroman.espinar@gmail.com;219;ES0000039;1790589600000;1790603100000;7.6;A277;Oenanthe oenanthe;Collalba gris;1790600400000;8;false
+jroman.espinar@gmail.com;220;ES0000039;1790679600000;1790693100000;4.8;A091;Circaetus gallicus;Culebrera europea;1790682300000;2;false
+jroman.espinar@gmail.com;220;ES0000039;1790679600000;1790693100000;4.8;A277;Oenanthe oenanthe;Collalba gris;1790685000000;7;false
+jroman.espinar@gmail.com;220;ES0000039;1790679600000;1790693100000;4.8;A087;Gypaetus barbatus;Quebrantahuesos;1790687700000;3;true
+jroman.espinar@gmail.com;220;ES0000039;1790679600000;1790693100000;4.8;A089;Aegypius monachus;Buitre negro;1790690400000;12;false

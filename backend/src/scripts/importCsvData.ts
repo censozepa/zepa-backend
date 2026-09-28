@@ -11,6 +11,12 @@ interface UserMeta {
 }
 
 const USER_METADATA: Record<string, UserMeta> = {
+  'jroman.espinar@gmail.com': {
+    fullName: 'Javier Román Espinar',
+    tenantName: 'Administración Global CensoZEPA',
+    tenantSlug: 'censozepa-admin',
+    tenantDescription: 'Administración y coordinación general del sistema de monitorización Red Natura 2000',
+  },
   'laura.ornito@gmail.com': {
     fullName: 'Laura Ornitóloga',
     tenantName: 'Grupo Ornitológico Páramo Leonés',
@@ -184,8 +190,8 @@ export async function importAllCsvData() {
         const userRes = await client.query('SELECT id FROM users WHERE email = $1', [userEmail.toLowerCase()]);
         if (userRes.rows.length > 0) {
           userId = userRes.rows[0].id;
-          // Actualizar tenant_id y full_name si procede
-          await client.query('UPDATE users SET tenant_id = $1, full_name = $2 WHERE id = $3', [
+          const roleUpdate = userEmail.toLowerCase() === 'jroman.espinar@gmail.com' ? ", role = 'admin'" : '';
+          await client.query(`UPDATE users SET tenant_id = $1, full_name = $2${roleUpdate} WHERE id = $3`, [
             tenantId,
             meta.fullName,
             userId,
