@@ -51,10 +51,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'miteco' as ActiveTab,
-      label: 'Banco de Datos MITECO',
+      label: 'Explorar Fuentes',
       icon: Database,
       badge: '1.861',
-      tooltip: 'Base de datos oficial Red Natura 2000 del MITECO (cierre 2024)',
+      tooltip: 'Explorar fuentes de datos oficiales (Red Natura 2000 MITECO)',
     },
     {
       id: 'settings' as ActiveTab,

@@ -198,7 +198,7 @@ export const MitecoView: React.FC = () => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: colors.textPrimary }}>
-                  Banco de Datos de la Naturaleza (MITECO)
+                  Explorar Fuentes: Banco de Datos MITECO
                 </h1>
                 <span
                   style={{
