@@ -1,4 +1,0 @@
-id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
-7;ES0000365;1790198783351;1790198795299;0.0;A142;Vanellus vanellus;Avefría europea;1790198786466;1;false
-7;ES0000365;1790198783351;1790198795299;0.0;A085;Accipiter gentilis;Azor común;1790198789121;1;false
-7;ES0000365;1790198783351;1790198795299;0.0;A379;Emberiza hortulana;Escribano hortelano;1790198793830;1;false
