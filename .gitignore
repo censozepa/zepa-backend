@@ -176,3 +176,5 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+*.accdb

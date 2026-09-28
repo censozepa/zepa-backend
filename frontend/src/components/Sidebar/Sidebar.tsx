@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Bird,
+  Database,
   Settings,
   Info,
   LogOut,
@@ -11,7 +12,7 @@ import {
 import { User } from '../../types/sightings';
 import { useTheme } from '../../context/ThemeContext';
 
-export type ActiveTab = 'dashboard' | 'my-records' | 'settings' | 'about';
+export type ActiveTab = 'dashboard' | 'my-records' | 'miteco' | 'settings' | 'about';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -47,6 +48,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Bird,
       badge: personalSightingsCount,
       tooltip: 'Datos y observaciones introducidos por mí',
+    },
+    {
+      id: 'miteco' as ActiveTab,
+      label: 'Banco de Datos MITECO',
+      icon: Database,
+      badge: '1.861',
+      tooltip: 'Base de datos oficial Red Natura 2000 del MITECO (cierre 2024)',
     },
     {
       id: 'settings' as ActiveTab,

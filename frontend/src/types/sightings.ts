@@ -81,3 +81,36 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface MitecoTableMeta {
+  name: string;
+  displayName: string;
+  category: string;
+  description: string;
+  rowCount: number;
+  columns: { name: string; type: string }[];
+}
+
+export interface MitecoSummary {
+  totalSites: number;
+  sitesByType: { type: string; label: string; count: number; areaHa: number }[];
+  totalSpeciesRecords: number;
+  uniqueSpeciesCount: number;
+  speciesByGroup: { group: string; count: number }[];
+  totalHabitatsRecords: number;
+  uniqueHabitatsCount: number;
+  totalAreaHa: number;
+  totalImpactRecords: number;
+  tablesCount: number;
+  totalRecordsCount: number;
+}
+
+export interface MitecoTableData {
+  table: string;
+  columns: { name: string; type: string }[];
+  rows: Record<string, any>[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+

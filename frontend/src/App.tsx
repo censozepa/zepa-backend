@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Sidebar, ActiveTab } from './components/Sidebar/Sidebar';
 import { DashboardView } from './components/Dashboard/DashboardView';
 import { MyRecordsView } from './components/MyRecords/MyRecordsView';
+import { MitecoView } from './components/Miteco/MitecoView';
 import { SettingsView } from './components/Settings/SettingsView';
 import { AboutView } from './components/About/AboutView';
 import { LoginScreen } from './components/Auth/LoginScreen';
@@ -178,6 +179,8 @@ export const App: React.FC = () => {
             onRefresh={refreshAllData}
           />
         )}
+
+        {activeTab === 'miteco' && <MitecoView />}
 
         {activeTab === 'settings' && <SettingsView user={user} />}
 
