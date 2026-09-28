@@ -88,16 +88,17 @@ export async function importAllCsvData() {
          VALUES ($1, $2, $3, 'admin', true)`,
         [adminEmail, defaultPasswordHash, 'Javier Román Espinar']
       );
-      console.log('  👤 Usuario Administrador creado: jroman.espinar@gmail.com');
+      console.log('  👤 Usuario Superadministrador creado: jroman.espinar@gmail.com');
     } else {
       await client.query(
-        `UPDATE users SET role = 'admin', full_name = 'Javier Román Espinar', password_hash = $1 WHERE email = $2`,
-        [defaultPasswordHash, adminEmail]
+        `UPDATE users SET role = 'admin', full_name = 'Javier Román Espinar', tenant_id = NULL WHERE email = $1`,
+        [adminEmail]
       );
+      console.log('  👤 Usuario Superadministrador verificado: jroman.espinar@gmail.com');
     }
 
-    // Eliminar voluntario1@censozepa.org si existiera
-    await client.query(`DELETE FROM users WHERE email = 'voluntario1@censozepa.org'`);
+    // Asegurar que admin@censozepa.org y voluntario1@censozepa.org NO existan
+    await client.query(`DELETE FROM users WHERE email IN ('admin@censozepa.org', 'voluntario1@censozepa.org')`);
 
     // 2. Localizar directorio tests-data
     const testsDataDir = path.resolve(__dirname, '../../../tests-data');
