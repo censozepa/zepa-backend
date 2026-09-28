@@ -13,6 +13,7 @@ import { StatsCards } from '../Common/StatsCards';
 import { RecordsTable } from '../Common/RecordsTable';
 import { SessionsTable } from '../Common/SessionsTable';
 import { HorizontalBarChart, DonutChart } from '../Charts/Charts';
+import { UserActivityRanking } from './UserActivityRanking';
 import { useTheme } from '../../context/ThemeContext';
 
 interface DashboardViewProps {
@@ -442,6 +443,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 maxBars={10}
               />
             </div>
+
+            {/* Fila 4: Top 10 Usuarios más activos */}
+            <UserActivityRanking sessions={sessions} sightings={allFeatures} />
           </div>
         )}
 
