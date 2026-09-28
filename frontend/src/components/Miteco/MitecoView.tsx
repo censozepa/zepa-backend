@@ -211,8 +211,7 @@ export const MitecoView: React.FC = () => {
   };
 
   return (
-    <div style={{ flex: 1, height: '100%', overflowY: 'auto' }}>
-      <div style={{ padding: '28px', maxWidth: '1440px', margin: '0 auto', color: colors.textPrimary }}>
+    <div style={{ padding: '28px', maxWidth: '1440px', margin: '0 auto', color: colors.textPrimary }}>
       {/* 1. CABECERA PRINCIPAL */}
       <div
         style={{
@@ -1462,7 +1461,6 @@ export const MitecoView: React.FC = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
