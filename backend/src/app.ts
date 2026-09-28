@@ -4,6 +4,7 @@ import { testDbConnection } from './config/db.js';
 import { authPlugin } from './plugins/auth.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { sightingRoutes } from './routes/sighting.routes.js';
+import { zepaRoutes } from './routes/zepa.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -33,6 +34,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Rutas de la API
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(sightingRoutes, { prefix: '/api/sightings' });
+  await app.register(zepaRoutes, { prefix: '/api' });
 
   return app;
 }

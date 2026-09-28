@@ -1,0 +1,7 @@
+id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+5;ES0000365;1790588750256;1790588763371;0.0;A128;Tetrax tetrax;Sisón común;1790588756175;2;false
+4;ES0000365;1790586474955;1790586486950;0.0;A168;Actitis hypoleucos;Andarríos chico;1790586481896;2;false
+3;ES0000365;1790586232924;1790586239509;0.0;A230;Merops apiaster;Abejaruco europeo;1790586236887;2;false
+2;ES0000365;1790586202651;1790586229893;0.0;;;;;;
+1;ES0000365;1790586179703;1790586199316;0.0;A113;Coturnix coturnix;Codorniz común;1790586186291;2;false
+1;ES0000365;1790586179703;1790586199316;0.0;A074;Milvus milvus;Milano real;1790586192278;3;false

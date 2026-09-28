@@ -13,6 +13,10 @@ export const createSightingSchema = z.object({
 
 export const getSightingsQuerySchema = z.object({
   species: z.string().optional(),
+  zepaCode: z.string().optional(),
+  sessionNumber: z.coerce.number().int().optional(),
+  sessionId: z.string().uuid().optional(),
+  phenologicalAlert: z.coerce.boolean().optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   

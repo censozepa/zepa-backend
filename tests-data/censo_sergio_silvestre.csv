@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+sergio.silvestre@gmail.com;109;ES0000055;1790586800000;1790591500000;5.5;A108;Tetrao urogallus;Urogallo cantábrico;1790587400000;1;true
+sergio.silvestre@gmail.com;109;ES0000055;1790586800000;1790591500000;5.5;A334;Tichodroma muraria;Treparriscos;1790588300000;1;false
+sergio.silvestre@gmail.com;109;ES0000055;1790586800000;1790591500000;5.5;A238;Dendrocopos medius;Pico mediano;1790589100000;2;false
+sergio.silvestre@gmail.com;109;ES0000055;1790586800000;1790591500000;5.5;A345;Pyrrhocorax graculus;Chova piquigualda;1790590000000;15;false
+sergio.silvestre@gmail.com;109;ES0000055;1790586800000;1790591500000;5.5;A072;Pernis apivorus;Abejero europeo;1790590800000;3;false

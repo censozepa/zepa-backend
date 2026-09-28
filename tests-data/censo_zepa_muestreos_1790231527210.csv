@@ -1,0 +1,4 @@
+id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+4;ES0000365;1790227829009;1790231114299;0.0;A123;Gallinula chloropus;Gallineta común;1790227832391;1;false
+4;ES0000365;1790227829009;1790231114299;0.0;A278;Oenanthe hispanica;Collalba rubia;1790227835481;1;false
+4;ES0000365;1790227829009;1790231114299;0.0;A129;Otis tarda;Avutarda común;1790227838356;1;false

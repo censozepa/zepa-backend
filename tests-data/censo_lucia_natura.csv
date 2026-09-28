@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+lucia.natura@gmail.com;105;ES0000018;1790586400000;1790590200000;3.0;A058;Netta rufina;Pato colorado;1790587000000;16;false
+lucia.natura@gmail.com;105;ES0000018;1790586400000;1790590200000;3.0;A029;Ardea purpurea;Garza imperial;1790587700000;4;false
+lucia.natura@gmail.com;105;ES0000018;1790586400000;1790590200000;3.0;A060;Oxyura leucocephala;Malvasía cabeciblanca;1790588500000;3;false
+lucia.natura@gmail.com;105;ES0000018;1790586400000;1790590200000;3.0;A120;Porphyrio porphyrio;Calamón común;1790589200000;5;false
+lucia.natura@gmail.com;105;ES0000018;1790586400000;1790590200000;3.0;A005;Podiceps cristatus;Somormujo lavanco;1790589900000;7;false

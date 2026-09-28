@@ -15,6 +15,9 @@ declare module '@fastify/jwt' {
       id: string;
       email: string;
       role: 'volunteer' | 'admin' | 'researcher';
+      tenantId?: string | null;
+      tenantName?: string | null;
+      tenantSlug?: string | null;
     };
   }
 }

@@ -1,0 +1,3 @@
+id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+3;ES0000365;1790199030539;1790199034901;0.0;A098;Falco columbarius;Esmerejón;1790199032946;1;false
+3;ES0000365;1790199030539;1790199034901;0.0;A085;Accipiter gentilis;Azor común;1790199034344;1;false

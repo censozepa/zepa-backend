@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+beatriz.vuelo@gmail.com;110;ES0000039;1790586900000;1790590400000;4.0;A272;Luscinia svecica;Pechiazul;1790587500000;2;false
+beatriz.vuelo@gmail.com;110;ES0000039;1790586900000;1790590400000;4.0;A280;Monticola saxatilis;Roquero rojo;1790588200000;2;false
+beatriz.vuelo@gmail.com;110;ES0000039;1790586900000;1790590400000;4.0;A346;Pyrrhocorax pyrrhocorax;Chova piquirroja;1790589000000;18;false
+beatriz.vuelo@gmail.com;110;ES0000039;1790586900000;1790590400000;4.0;A089;Aegypius monachus;Buitre negro;1790589700000;4;false
+beatriz.vuelo@gmail.com;110;ES0000039;1790586900000;1790590400000;4.0;A092;Hieraaetus pennatus;Águila calzada;1790590200000;2;false

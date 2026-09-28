@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+pablo.rapaces@gmail.com;107;ES0000020;1790586600000;1790590800000;4.2;A181;Ichthyaetus audouinii;Gaviota de Audouin;1790587200000;18;false
+pablo.rapaces@gmail.com;107;ES0000020;1790586600000;1790590800000;4.2;A032;Plegadis falcinellus;Morito común;1790588000000;14;false
+pablo.rapaces@gmail.com;107;ES0000020;1790586600000;1790590800000;4.2;A048;Phoenicopterus roseus;Flamenco común;1790588900000;42;false
+pablo.rapaces@gmail.com;107;ES0000020;1790586600000;1790590800000;4.2;A132;Recurvirostra avosetta;Avoceta común;1790589700000;9;false
+pablo.rapaces@gmail.com;107;ES0000020;1790586600000;1790590800000;4.2;A190;Thalasseus bengalensis;Charrán bengalí;1790590400000;2;true

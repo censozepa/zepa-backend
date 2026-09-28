@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+marta.fauna@gmail.com;108;ES0000005;1790586700000;1790590000000;3.8;A375;Bucanetes githagineus;Camachuelo trompetero;1790587300000;4;false
+marta.fauna@gmail.com;108;ES0000005;1790586700000;1790590000000;3.8;A133;Burhinus oedicnemus;Alcaraván común;1790588100000;3;false
+marta.fauna@gmail.com;108;ES0000005;1790586700000;1790590000000;3.8;A242;Calandrella rufescens;Terrera marismeña;1790588800000;6;false
+marta.fauna@gmail.com;108;ES0000005;1790586700000;1790590000000;3.8;A176;Chroicocephalus genei;Gaviota picofina;1790589500000;8;false
+marta.fauna@gmail.com;108;ES0000005;1790586700000;1790590000000;3.8;A138;Charadrius alexandrinus;Chorlitejo patinegro;1790589900000;5;false

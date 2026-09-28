@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+laura.ornito@gmail.com;101;ES0000365;1790586000000;1790590000000;3.2;A129;Otis tarda;Avutarda común;1790586600000;4;false
+laura.ornito@gmail.com;101;ES0000365;1790586000000;1790590000000;3.2;A128;Tetrax tetrax;Sisón común;1790587200000;2;false
+laura.ornito@gmail.com;101;ES0000365;1790586000000;1790590000000;3.2;A420;Pterocles orientalis;Ganga ortega;1790587800000;6;false
+laura.ornito@gmail.com;101;ES0000365;1790586000000;1790590000000;3.2;A081;Circus pygargus;Aguilucho cenizo;1790588400000;1;true
+laura.ornito@gmail.com;101;ES0000365;1790586000000;1790590000000;3.2;A096;Falco tinnunculus;Cernícalo vulgar;1790589000000;3;false

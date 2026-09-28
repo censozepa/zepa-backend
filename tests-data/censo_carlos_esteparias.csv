@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+carlos.esteparias@gmail.com;106;ES0000015;1790586500000;1790591200000;6.0;A127;Grus grus;Grulla común;1790587100000;120;false
+carlos.esteparias@gmail.com;106;ES0000015;1790586500000;1790591200000;6.0;A082;Circus cyaneus;Aguilucho pálido;1790587900000;2;false
+carlos.esteparias@gmail.com;106;ES0000015;1790586500000;1790591200000;6.0;A129;Otis tarda;Avutarda común;1790588700000;5;false
+carlos.esteparias@gmail.com;106;ES0000015;1790586500000;1790591200000;6.0;A419;Pterocles alchata;Ganga ibérica;1790589400000;8;false
+carlos.esteparias@gmail.com;106;ES0000015;1790586500000;1790591200000;6.0;A247;Chersophilus duponti;Alondra ricotí;1790590300000;1;true

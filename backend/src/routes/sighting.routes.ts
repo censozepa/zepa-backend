@@ -66,21 +66,26 @@ export const sightingRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // 3. Consulta y filtrado de avistamientos (Consumido por el Frontend React - Mapa)
-  fastify.get('/', async (request, reply) => {
-    const parseResult = getSightingsQuerySchema.safeParse(request.query);
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: 'ValidationError',
-        details: parseResult.error.format(),
-      });
-    }
+  fastify.get(
+    '/',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const parseResult = getSightingsQuerySchema.safeParse(request.query);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: 'ValidationError',
+          details: parseResult.error.format(),
+        });
+      }
 
-    try {
-      const data = await getSightings(parseResult.data);
-      return reply.send(data);
-    } catch (err: any) {
-      fastify.log.error(err);
-      return reply.status(500).send({ error: 'Error al recuperar los avistamientos' });
+      try {
+        const tenantId = request.user.role === 'admin' ? null : request.user.tenantId;
+        const data = await getSightings(parseResult.data, tenantId);
+        return reply.send(data);
+      } catch (err: any) {
+        fastify.log.error(err);
+        return reply.status(500).send({ error: 'Error al recuperar los avistamientos' });
+      }
     }
-  });
+  );
 };

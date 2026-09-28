@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { SightingFeatureCollection } from '../../types/sightings';
+import { SightingFeatureCollection, ZepaZone } from '../../types/sightings';
 
-// Icono personalizado SVG para Leaflet (evita problemas de rutas de Vite con los pngs por defecto)
-const birdIcon = new L.DivIcon({
+// Icono verde estándar para avistamientos regulares
+const regularBirdIcon = new L.DivIcon({
   className: 'custom-bird-marker',
   html: `
     <div style="
@@ -35,60 +35,110 @@ const birdIcon = new L.DivIcon({
   popupAnchor: [0, -18],
 });
 
+// Icono ámbar/rojo para alertas fenológicas
+const alertBirdIcon = new L.DivIcon({
+  className: 'custom-bird-marker-alert',
+  html: `
+    <div style="
+      background: #dc2626;
+      color: white;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fef08a;
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.6);
+      cursor: pointer;
+      animation: pulse 2s infinite;
+    ">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+  `,
+  iconSize: [34, 34],
+  iconAnchor: [17, 17],
+  popupAnchor: [0, -19],
+});
+
 interface SightingsMapProps {
   data: SightingFeatureCollection | null;
+  selectedZepa: ZepaZone | null;
   loading: boolean;
-  selectedSightingId?: string | null;
+  onSelectSession?: (sessionNumber: number) => void;
 }
 
-// Componente para ajustar la vista del mapa automáticamente cuando hay marcadores
-function ChangeView({ data }: { data: SightingFeatureCollection | null }) {
+function ChangeView({
+  data,
+  selectedZepa,
+}: {
+  data: SightingFeatureCollection | null;
+  selectedZepa: ZepaZone | null;
+}) {
   const map = useMap();
 
   useEffect(() => {
+    if (selectedZepa && selectedZepa.geometry) {
+      try {
+        const geojsonLayer = L.geoJSON(selectedZepa.geometry);
+        map.fitBounds(geojsonLayer.getBounds(), { padding: [40, 40], maxZoom: 12 });
+        return;
+      } catch (e) {
+        console.error('Error fitting bounds to ZEPA', e);
+      }
+    }
+
     if (data && data.features.length > 0) {
       const bounds = L.latLngBounds(
         data.features.map((f) => [f.geometry.coordinates[1], f.geometry.coordinates[0]])
       );
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
     }
-  }, [data, map]);
+  }, [data, selectedZepa, map]);
 
   return null;
 }
 
-export const SightingsMap: React.FC<SightingsMapProps> = ({ data, loading }) => {
-  // Centro por defecto: Península Ibérica
-  const defaultCenter: [number, number] = [40.4168, -3.7038];
+export const SightingsMap: React.FC<SightingsMapProps> = ({
+  data,
+  selectedZepa,
+  loading,
+  onSelectSession,
+}) => {
+  const defaultCenter: [number, number] = [42.26, -5.73];
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 64px)' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {loading && (
         <div
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
+            top: '16px',
+            right: '16px',
             zIndex: 1000,
             background: 'rgba(255, 255, 255, 0.95)',
             padding: '8px 16px',
             borderRadius: '20px',
             boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
-            fontSize: '14px',
-            fontWeight: 500,
+            fontSize: '13px',
+            fontWeight: 600,
             color: '#065f46',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
           }}
         >
-          <span className="spinner">⏳</span> Cargando avistamientos...
+          <span className="spinner">⏳</span> Cargando mapa ornitológico...
         </div>
       )}
 
       <MapContainer
         center={defaultCenter}
-        zoom={6}
+        zoom={10}
         style={{ width: '100%', height: '100%' }}
         scrollWheelZoom={true}
       >
@@ -97,76 +147,170 @@ export const SightingsMap: React.FC<SightingsMapProps> = ({ data, loading }) => 
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
-        <ChangeView data={data} />
+        <ChangeView data={data} selectedZepa={selectedZepa} />
 
+        {/* Polígono de la ZEPA activa */}
+        {selectedZepa?.geometry && (
+          <GeoJSON
+            key={selectedZepa.code}
+            data={selectedZepa.geometry}
+            style={{
+              color: '#059669',
+              weight: 2.5,
+              opacity: 0.9,
+              dashArray: '6, 6',
+              fillColor: '#10b981',
+              fillOpacity: 0.12,
+            }}
+          />
+        )}
+
+        {/* Marcadores de avistamientos */}
         {data?.features.map((feature) => {
           const [lon, lat] = feature.geometry.coordinates;
-          const { id, speciesName, count, sightedAt, observer, notes, accuracyMeters } =
-            feature.properties;
+          const {
+            id,
+            speciesCode,
+            commonName,
+            scientificName,
+            speciesName,
+            count,
+            sightedAt,
+            phenologicalAlert,
+            sessionNumber,
+            observer,
+            notes,
+            accuracyMeters,
+          } = feature.properties;
+
+          const isAlert = !!phenologicalAlert;
+          const markerIcon = isAlert ? alertBirdIcon : regularBirdIcon;
 
           return (
-            <Marker key={id} position={[lat, lon]} icon={birdIcon}>
+            <Marker key={id} position={[lat, lon]} icon={markerIcon}>
               <Popup>
-                <div style={{ minWidth: '220px', padding: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#065f46' }}>
-                      {speciesName}
-                    </h3>
+                <div style={{ minWidth: '240px', padding: '4px' }}>
+                  {isAlert && (
+                    <div
+                      style={{
+                        background: '#fee2e2',
+                        border: '1px solid #f87171',
+                        color: '#991b1b',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      ⚠️ ALERTA FENOLÓGICA (Avistamiento anómalo)
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#0f172a' }}>
+                        {commonName || speciesName}
+                      </h3>
+                      {scientificName && (
+                        <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#64748b' }}>
+                          {scientificName}
+                        </div>
+                      )}
+                    </div>
                     <span
                       style={{
                         background: '#ecfdf5',
                         color: '#065f46',
                         padding: '2px 8px',
                         borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
+                        fontSize: '11px',
+                        fontWeight: 700,
                         border: '1px solid #a7f3d0',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {count} {count === 1 ? 'ejemplar' : 'ejemplares'}
                     </span>
                   </div>
 
-                  <p style={{ margin: '4px 0', fontSize: '13px', color: '#4b5563' }}>
-                    <strong>Observador:</strong> {observer}
-                  </p>
-
-                  <p style={{ margin: '4px 0', fontSize: '13px', color: '#4b5563' }}>
-                    <strong>Fecha:</strong> {new Date(sightedAt).toLocaleString('es-ES')}
-                  </p>
-
-                  {accuracyMeters && (
-                    <p style={{ margin: '4px 0', fontSize: '12px', color: '#6b7280' }}>
-                      <strong>Precisión GPS:</strong> ±{accuracyMeters.toFixed(1)} m
-                    </p>
+                  {speciesCode && (
+                    <div style={{ marginTop: '6px' }}>
+                      <span
+                        style={{
+                          background: '#eff6ff',
+                          color: '#1d4ed8',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          border: '1px solid #bfdbfe',
+                        }}
+                      >
+                        Directiva Aves: {speciesCode}
+                      </span>
+                    </div>
                   )}
+
+                  <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
+
+                  <div style={{ fontSize: '12px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div>
+                      <strong>Hora avistamiento:</strong> {new Date(sightedAt).toLocaleTimeString('es-ES')}
+                    </div>
+                    <div>
+                      <strong>Fecha:</strong> {new Date(sightedAt).toLocaleDateString('es-ES')}
+                    </div>
+                    {sessionNumber && (
+                      <div>
+                        <strong>Sesión de censo:</strong>{' '}
+                        <button
+                          onClick={() => onSelectSession?.(sessionNumber)}
+                          style={{
+                            background: '#f1f5f9',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            padding: '1px 6px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            color: '#0284c7',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Sesión #{sessionNumber} ↗
+                        </button>
+                      </div>
+                    )}
+                    {accuracyMeters && (
+                      <div style={{ color: '#94a3b8' }}>
+                        Precisión GPS: ±{accuracyMeters.toFixed(1)} m
+                      </div>
+                    )}
+                    {observer && (
+                      <div style={{ color: '#64748b' }}>
+                        Observador: {observer}
+                      </div>
+                    )}
+                  </div>
 
                   {notes && (
                     <div
                       style={{
                         marginTop: '8px',
-                        padding: '8px',
-                        background: '#f9fafb',
+                        padding: '6px 8px',
+                        background: '#f8fafc',
                         borderRadius: '6px',
-                        fontSize: '12px',
-                        color: '#374151',
+                        fontSize: '11px',
+                        color: '#334155',
                         borderLeft: '3px solid #10b981',
                       }}
                     >
                       <em>"{notes}"</em>
                     </div>
                   )}
-
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      fontSize: '11px',
-                      color: '#9ca3af',
-                      textAlign: 'right',
-                    }}
-                  >
-                    Lat: {lat.toFixed(4)}, Lon: {lon.toFixed(4)}
-                  </div>
                 </div>
               </Popup>
             </Marker>

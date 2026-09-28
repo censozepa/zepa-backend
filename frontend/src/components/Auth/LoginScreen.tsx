@@ -9,6 +9,12 @@ interface LoginScreenProps {
 
 const GOOGLE_ACCOUNTS = [
   {
+    name: 'Javier Román (Administrador)',
+    email: 'jroman.espinar@gmail.com',
+    zepa: '👑 Superadministrador Global (10 ZEPAs)',
+    color: '#047857',
+  },
+  {
     name: 'Laura Ornitóloga',
     email: 'laura.ornito@gmail.com',
     zepa: 'Páramo Leonés (ES0000365)',
@@ -67,12 +73,6 @@ const GOOGLE_ACCOUNTS = [
     email: 'beatriz.vuelo@gmail.com',
     zepa: 'Sierra de Guadarrama (ES0000039)',
     color: '#9333ea',
-  },
-  {
-    name: 'Coordinador Red Natura 2000',
-    email: 'admin@censozepa.org',
-    zepa: 'Acceso Global (10 ZEPAs)',
-    color: '#0f172a',
   },
 ];
 

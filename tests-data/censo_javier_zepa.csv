@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+javier.zepa@gmail.com;104;ES0000043;1790586300000;1790589800000;5.1;A086;Gyps fulvus;Buitre leonado;1790586900000;24;false
+javier.zepa@gmail.com;104;ES0000043;1790586300000;1790589800000;5.1;A077;Neophron percnopterus;Alimoche común;1790587600000;3;false
+javier.zepa@gmail.com;104;ES0000043;1790586300000;1790589800000;5.1;A346;Pyrrhocorax pyrrhocorax;Chova piquirroja;1790588200000;12;false
+javier.zepa@gmail.com;104;ES0000043;1790586300000;1790589800000;5.1;A103;Falco peregrinus;Halcón peregrino;1790588900000;2;false
+javier.zepa@gmail.com;104;ES0000043;1790586300000;1790589800000;5.1;A281;Monticola solitarius;Roquero solitario;1790589500000;1;false

@@ -1,0 +1,6 @@
+usuario;id_sesion;id_zepa;fecha_hora_inicio;fecha_hora_fin;distancia_recorrida;id_especie;nombre_cientifico;nombre_comun;hora_avistamiento;cantidad;alerta_fenologica
+elena.campo@gmail.com;103;ES0000033;1790586200000;1790591000000;2.8;A089;Aegypius monachus;Buitre negro;1790586800000;8;false
+elena.campo@gmail.com;103;ES0000033;1790586200000;1790591000000;2.8;A030;Ciconia nigra;Cigüeña negra;1790587500000;2;false
+elena.campo@gmail.com;103;ES0000033;1790586200000;1790591000000;2.8;A083;Aquila adalberti;Águila imperial ibérica;1790588300000;1;false
+elena.campo@gmail.com;103;ES0000033;1790586200000;1790591000000;2.8;A077;Neophron percnopterus;Alimoche común;1790589100000;2;false
+elena.campo@gmail.com;103;ES0000033;1790586200000;1790591000000;2.8;A215;Bubo bubo;Búho real;1790590200000;1;false

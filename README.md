@@ -49,7 +49,7 @@ Sistema de ciencia ciudadana para el registro y visualización de avistamientos 
 - **Body:**
 ```json
 {
-  "email": "voluntario1@censozepa.org",
+  "email": "jroman.espinar@gmail.com",
   "password": "password123"
 }
 ```
@@ -94,6 +94,6 @@ Abre en tu navegador:
 - Mapa interactivo con los avistamientos geolocalizados en España.
 - Filtro reactivo en la barra superior (ej. escribe *Águila*, *Grulla*, *Flamenco*, etc.).
 - Haz clic en cualquier marcador para ver los detalles del avistamiento (observador, fecha, notas, precisión GPS).
-- Botón **Iniciar Sesión** con las credenciales de prueba:
-  - **Email:** `voluntario1@censozepa.org`
-  - **Contraseña:** `password123`
+- Botón **Iniciar Sesión** con soporte para Google (OpenID Connect) o credenciales locales:
+  - **Administrador Global:** `jroman.espinar@gmail.com` / `password123`
+  - **Voluntarios ZEPA:** `laura.ornito@gmail.com`, `marcos.birds@gmail.com`, etc. / `password123`
