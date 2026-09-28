@@ -81,36 +81,57 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface MitecoTableMeta {
-  name: string;
-  displayName: string;
-  category: string;
-  description: string;
-  rowCount: number;
-  columns: { name: string; type: string }[];
-}
-
-export interface MitecoSummary {
-  totalSites: number;
-  sitesByType: { type: string; label: string; count: number; areaHa: number }[];
-  totalSpeciesRecords: number;
-  uniqueSpeciesCount: number;
-  speciesByGroup: { group: string; count: number }[];
-  totalHabitatsRecords: number;
-  uniqueHabitatsCount: number;
+export interface MitecoZepaSummary {
+  totalZepas: number;
+  pureZepasCount: number; // Tipo A
+  coincidentZepasCount: number; // Tipo C
   totalAreaHa: number;
-  totalImpactRecords: number;
-  tablesCount: number;
-  totalRecordsCount: number;
+  totalBirdSpeciesRecords: number;
+  uniqueBirdSpeciesCount: number;
 }
 
-export interface MitecoTableData {
-  table: string;
-  columns: { name: string; type: string }[];
-  rows: Record<string, any>[];
+export interface ZepaRecord {
+  sitecode: string;
+  sitename: string;
+  sitetype: string;
+  date_spa: string | null;
+  spa_legal_reference: string | null;
+  areaha: number;
+  marine_area_percentage: number | null;
+  longitude: number;
+  latitude: number;
+  bird_species_count: number;
+  quality: string | null;
+  explanations: string | null;
+  documentation: string | null;
+  othercharact: string | null;
+  date_compilation: string | null;
+  date_update: string | null;
+}
+
+export interface ZepaSpeciesRecord {
+  speciesname: string;
+  speciescode: string;
+  population_type: string | null;
+  lowerbound: number | null;
+  upperbound: number | null;
+  counting_unit: string | null;
+  abundance_category: string | null;
+  dataquality: string | null;
+  population?: string | null;
+  conservation: string | null;
+}
+
+export interface ZepasQueryResponse {
+  rows: ZepaRecord[];
   total: number;
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface ZepaDetailResponse {
+  zepa: ZepaRecord | null;
+  species: ZepaSpeciesRecord[];
 }
 

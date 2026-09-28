@@ -53,8 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'miteco' as ActiveTab,
       label: 'Explorar Fuentes',
       icon: Database,
-      badge: '1.861',
-      tooltip: 'Explorar fuentes de datos oficiales (Red Natura 2000 MITECO)',
+      badge: '658',
+      tooltip: 'Directiva Aves: 658 ZEPAs oficiales de España (MITECO)',
     },
     {
       id: 'settings' as ActiveTab,
