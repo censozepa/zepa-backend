@@ -17,6 +17,8 @@ import {
   ArrowUpDown,
   FileText,
   CheckCircle2,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 import {
   MitecoZepaSummary,
@@ -59,6 +61,7 @@ export const MitecoView: React.FC = () => {
   const [modalZepa, setModalZepa] = useState<ZepaRecord | null>(null);
   const [modalSpecies, setModalSpecies] = useState<ZepaSpeciesRecord[]>([]);
   const [speciesSearch, setSpeciesSearch] = useState<string>('');
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
   // 1. Cargar Resumen oficial MITECO
   const loadSummary = useCallback(async () => {
@@ -269,6 +272,28 @@ export const MitecoView: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => setShowHelpModal(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 15px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                color: '#2563eb',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Guía y leyenda explicativa de los códigos oficiales (ZEPA Tipo A/C, Población, Abundancia, Conservación)"
+            >
+              <HelpCircle size={16} />
+              Ayuda Códigos
+            </button>
+
             <button
               onClick={() => {
                 loadSummary();
@@ -1457,6 +1482,424 @@ export const MitecoView: React.FC = () => {
                 }}
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL DE AYUDA Y LEYENDA DE CÓDIGOS OFICIALES */}
+      {showHelpModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: colors.cardBg,
+              borderRadius: '20px',
+              border: `1px solid ${colors.cardBorder}`,
+              width: '100%',
+              maxWidth: '860px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+              overflow: 'hidden',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Cabecera del Modal de Ayuda */}
+            <div
+              style={{
+                padding: '20px 24px',
+                borderBottom: `1px solid ${colors.cardBorder}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                    color: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <BookOpen size={22} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: colors.textPrimary }}>
+                    Guía y Leyenda de Códigos Oficiales
+                  </h2>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: colors.textSecondary }}>
+                    Directiva Aves 2009/147/CE · Red Natura 2000 · Banco de Datos de la Naturaleza (MITECO)
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowHelpModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: colors.textSecondary,
+                  cursor: 'pointer',
+                  padding: '8px',
+                  borderRadius: '8px',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido explicativo con scroll */}
+            <div style={{ overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Sección 1: Tipo de Espacio ZEPA */}
+              <div
+                style={{
+                  backgroundColor: inputBg,
+                  padding: '18px 20px',
+                  borderRadius: '14px',
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <ShieldCheck size={18} color="#10b981" />
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
+                    1. Clasificación del Espacio (Tipo ZEPA)
+                  </h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                  <div
+                    style={{
+                      padding: '14px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          backgroundColor: '#10b981',
+                          color: '#ffffff',
+                        }}
+                      >
+                        Tipo A
+                      </span>
+                      <strong style={{ fontSize: '13px', color: colors.textPrimary }}>ZEPA Exclusiva</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      Espacio declarado <strong>exclusivamente como Zona de Especial Protección para las Aves (ZEPA)</strong> en virtud del artículo 4 de la Directiva Aves. No coincide en límites ni comparte declaración con un Lugar de Importancia Comunitaria (LIC). En España existen <strong>387 ZEPAs Tipo A</strong>.
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '14px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          backgroundColor: '#3b82f6',
+                          color: '#ffffff',
+                        }}
+                      >
+                        Tipo C
+                      </span>
+                      <strong style={{ fontSize: '13px', color: colors.textPrimary }}>ZEPA coincidente con LIC/ZEC</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                      Espacio donde <strong>coinciden territorialmente una ZEPA</strong> (Directiva Aves) y un <strong>Lugar de Importancia Comunitaria (LIC) / ZEC</strong> (Directiva Hábitats). Comparte régimen de protección conjunto. En España existen <strong>271 ZEPAs Tipo C</strong>.
+                    </p>
+                  </div>
+                </div>
+                <div style={{ marginTop: '10px', fontSize: '11.5px', color: colors.textSecondary, fontStyle: 'italic' }}>
+                  * Nota: Los sitios Tipo B corresponden a LICs puros de la Directiva Hábitats (sin condición de ZEPA) y han sido excluidos de esta aplicación por no ser materia ornitológica.
+                </div>
+              </div>
+
+              {/* Sección 2: Población / Tipo de Presencia */}
+              <div
+                style={{
+                  backgroundColor: inputBg,
+                  padding: '18px 20px',
+                  borderRadius: '14px',
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <Bird size={18} color="#0284c7" />
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
+                    2. Tipo de Población o Presencia de las Aves (Columna "Población / Tipo")
+                  </h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                  <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontFamily: 'monospace' }}>p</span>
+                      <strong style={{ fontSize: '13px' }}>Residente</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.4 }}>
+                      Población <strong>sedentaria y permanente</strong> presente de forma regular a lo largo de todo el año.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', fontFamily: 'monospace' }}>r</span>
+                      <strong style={{ fontSize: '13px' }}>Reproductora</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.4 }}>
+                      Población que utiliza la ZEPA como <strong>área de cortejo, nidificación y cría</strong> (primavera/verano).
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, backgroundColor: 'rgba(6, 182, 212, 0.15)', color: '#0891b2', fontFamily: 'monospace' }}>w</span>
+                      <strong style={{ fontSize: '13px' }}>Invernante</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.4 }}>
+                      Aves que pasan la época no reproductora <strong>(otoño e invierno)</strong> en el espacio.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', fontFamily: 'monospace' }}>c</span>
+                      <strong style={{ fontSize: '13px' }}>Paso / Concentración</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.4 }}>
+                      Área de <strong>descanso o escala migratoria</strong> prenupcial/postnupcial o congregación para muda.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Conteo Oficial y Unidades */}
+              <div
+                style={{
+                  backgroundColor: inputBg,
+                  padding: '18px 20px',
+                  borderRadius: '14px',
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <FileText size={18} color="#a855f7" />
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
+                    3. Conteo Poblacional Oficial y Unidades de Censo
+                  </h3>
+                </div>
+                <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                  Indica los límites inferior y superior (rango mínimo - máximo) de individuos o parejas censados en el Formulario Normalizado de Datos de la Unión Europea (SDF).
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <strong style={{ fontSize: '12.5px', color: '#a855f7' }}>p / pairs</strong>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>
+                      Parejas reproductoras contabilizadas activas.
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <strong style={{ fontSize: '12.5px', color: '#a855f7' }}>i / individuals</strong>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>
+                      Número de individuos o ejemplares censados.
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <strong style={{ fontSize: '12.5px', color: '#a855f7' }}>calling males</strong>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>
+                      Machos territoriales detectados por canto.
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <strong style={{ fontSize: '12.5px', color: '#a855f7' }}>colonies</strong>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>
+                      Número de colonias de cría activas.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 4: Categoría de Abundancia */}
+              <div
+                style={{
+                  backgroundColor: inputBg,
+                  padding: '18px 20px',
+                  borderRadius: '14px',
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <Layers size={18} color="#3b82f6" />
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: colors.textPrimary }}>
+                    4. Categoría de Abundancia Relativa
+                  </h3>
+                </div>
+                <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: colors.textSecondary, lineHeight: 1.45 }}>
+                  Se emplea cuando no se dispone de un conteo numérico exacto en el momento del censo:
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', marginRight: '6px' }}>C</span>
+                    <strong style={{ fontSize: '12.5px' }}>Común (Common)</strong>
+                    <div style={{ fontSize: '11.5px', color: colors.textSecondary, marginTop: '3px' }}>
+                      Presencia frecuente y densidades medias o altas en hábitats idóneos.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', marginRight: '6px' }}>R</span>
+                    <strong style={{ fontSize: '12.5px' }}>Rara (Rare)</strong>
+                    <div style={{ fontSize: '11.5px', color: colors.textSecondary, marginTop: '3px' }}>
+                      Población reducida o baja frecuencia de avistamiento en el espacio.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', marginRight: '6px' }}>V</span>
+                    <strong style={{ fontSize: '12.5px' }}>Muy Rara (Very rare)</strong>
+                    <div style={{ fontSize: '11.5px', color: colors.textSecondary, marginTop: '3px' }}>
+                      Presencia accidental, citas excepcionales o muy escasas.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '10px 12px', borderRadius: '8px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}>
+                    <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(148, 163, 184, 0.2)', color: colors.textSecondary, marginRight: '6px' }}>P</span>
+                    <strong style={{ fontSize: '12.5px' }}>Presente (Present)</strong>
+                    <div style={{ fontSize: '11.5px', color: colors.textSecondary, marginTop: '3px' }}>
+                      Presencia confirmada fehacientemente pero sin estimación cuantitativa.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 5: Estado de Conservación y Calidad */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '14px',
+                }}
+              >
+                {/* Conservación */}
+                <div
+                  style={{
+                    backgroundColor: inputBg,
+                    padding: '16px 18px',
+                    borderRadius: '14px',
+                    border: `1px solid ${colors.cardBorder}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <CheckCircle2 size={16} color="#10b981" />
+                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: colors.textPrimary }}>
+                      5. Grado de Conservación
+                    </h3>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>A</span>
+                      <div><strong>Excelente:</strong> Población óptima y hábitat en excelente estado funcional.</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>B</span>
+                      <div><strong>Buena:</strong> Población bien conservada con presiones o amenazas moderadas.</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <span style={{ padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>C</span>
+                      <div><strong>Media / Reducida:</strong> Estado desfavorable que requiere planes de recuperación.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Calidad de Datos */}
+                <div
+                  style={{
+                    backgroundColor: inputBg,
+                    padding: '16px 18px',
+                    borderRadius: '14px',
+                    border: `1px solid ${colors.cardBorder}`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <Calendar size={16} color="#0284c7" />
+                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: colors.textPrimary }}>
+                      6. Calidad de los Datos
+                    </h3>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                    <div><strong>G (Buena):</strong> Basada en censos sistemáticos recientes y metodología normalizada.</div>
+                    <div><strong>M (Moderada):</strong> Basada en estimaciones parciales o muestreos incompletos.</div>
+                    <div><strong>P (Pobre):</strong> Basada solo en estimaciones bibliográficas u opiniones de expertos.</div>
+                    <div><strong>DD (Deficiente):</strong> Sin datos suficientes para contrastar la fiabilidad.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pie del Modal */}
+            <div
+              style={{
+                padding: '14px 24px',
+                borderTop: `1px solid ${colors.cardBorder}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                backgroundColor: 'rgba(0,0,0,0.02)',
+              }}
+            >
+              <button
+                onClick={() => setShowHelpModal(false)}
+                style={{
+                  padding: '9px 22px',
+                  borderRadius: '10px',
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                }}
+              >
+                Entendido / Cerrar
               </button>
             </div>
           </div>
