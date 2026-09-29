@@ -14,21 +14,34 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 3. Tabla de Usuarios
+-- 3. Tabla de Entidades / Organizaciones (Tenants)
+CREATE TABLE IF NOT EXISTS tenants (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Tabla de Usuarios (Soporta Autenticación con Password o Google OAuth / Android)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    google_id VARCHAR(255),
+    password_hash VARCHAR(255),
     full_name VARCHAR(150) NOT NULL,
     role user_role NOT NULL DEFAULT 'volunteer',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 
--- 4. Tabla de Zonas ZEPA (polígonos de referencia espacial)
+-- 5. Tabla de Zonas ZEPA (polígonos de referencia espacial)
 CREATE TABLE IF NOT EXISTS zepa_zones (
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,      -- Código oficial ZEPA (ej. ES0000001)
@@ -39,21 +52,46 @@ CREATE TABLE IF NOT EXISTS zepa_zones (
 
 CREATE INDEX IF NOT EXISTS idx_zepa_zones_geom ON zepa_zones USING GIST (geometry);
 
--- 5. Tabla de Avistamientos (Sightings)
+-- 6. Tabla de Sesiones de Muestreo (Sampling Sessions de la App Móvil / Trabajo de campo)
+CREATE TABLE IF NOT EXISTS sampling_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_number INTEGER NOT NULL,
+    zepa_code VARCHAR(50) NOT NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    distance_km NUMERIC(8,2) DEFAULT 0.0,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_session_zepa_time UNIQUE (session_number, zepa_code, start_time)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sampling_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_zepa ON sampling_sessions(zepa_code);
+
+-- 7. Tabla de Avistamientos (Sightings)
 CREATE TABLE IF NOT EXISTS sightings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
+    session_id UUID REFERENCES sampling_sessions(id) ON DELETE SET NULL,
+    session_number INTEGER,
+    zepa_code VARCHAR(50),
     
-    -- Datos de la observación
+    -- Datos de la especie
+    species_code VARCHAR(50),
+    scientific_name VARCHAR(200),
+    common_name VARCHAR(200),
     species_name VARCHAR(200) NOT NULL,
     count INTEGER NOT NULL DEFAULT 1 CHECK (count > 0),
+    phenological_alert BOOLEAN DEFAULT FALSE,
     sighted_at TIMESTAMPTZ NOT NULL,       -- Fecha/hora real en el campo
     
     -- Localización espacial (SRID 4326: WGS 84 estándar GPS)
     location GEOMETRY(Point, 4326) NOT NULL,
-    accuracy_meters DOUBLE PRECISION,     -- Precisión del sensor GPS del móvil
-    
-    -- Datos adicionales
+    accuracy_meters DOUBLE PRECISION DEFAULT 5.0,
     notes TEXT,
     
     -- Idempotencia para sincronizaciones offline (WorkManager en Android)

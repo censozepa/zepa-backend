@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth.routes.js';
 import { sightingRoutes } from './routes/sighting.routes.js';
 import { zepaRoutes } from './routes/zepa.routes.js';
 import { mitecoRoutes } from './routes/miteco.routes.js';
+import { androidRoutes } from './routes/android.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -32,11 +33,15 @@ export async function buildApp(): Promise<FastifyInstance> {
     };
   });
 
-  // Rutas de la API
+  // Rutas de la API Web y Móvil
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(sightingRoutes, { prefix: '/api/sightings' });
   await app.register(zepaRoutes, { prefix: '/api' });
   await app.register(mitecoRoutes, { prefix: '/api/miteco' });
+
+  // Rutas directas para la App Android (compatibles tanto con / como con /api)
+  await app.register(androidRoutes);
+  await app.register(androidRoutes, { prefix: '/api' });
 
   return app;
 }
