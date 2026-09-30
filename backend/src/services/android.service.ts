@@ -212,7 +212,9 @@ export async function addAndroidRegistry(input: AddRegistryInput): Promise<Andro
 
         // Calcular hora del avistamiento
         let sightingTime = new Date(reg.fecha_hora_inicio);
-        if (av.hora && av.hora.includes(':')) {
+        if (typeof av.hora === 'number' && av.hora > 0) {
+          sightingTime = new Date(av.hora);
+        } else if (typeof av.hora === 'string' && av.hora.includes(':')) {
           const parts = av.hora.split(':');
           const h = parseInt(parts[0], 10);
           const m = parseInt(parts[1], 10);
@@ -220,6 +222,8 @@ export async function addAndroidRegistry(input: AddRegistryInput): Promise<Andro
             sightingTime = new Date(reg.fecha_hora_inicio);
             sightingTime.setHours(h, m, 0, 0);
           }
+        } else if (typeof av.hora === 'string' && !isNaN(Number(av.hora)) && Number(av.hora) > 0) {
+          sightingTime = new Date(Number(av.hora));
         }
 
         // Evitar duplicados de avistamiento en la misma sesión
@@ -232,11 +236,14 @@ export async function addAndroidRegistry(input: AddRegistryInput): Promise<Andro
         );
 
         if (existingSightingRes.rows.length === 0) {
-          // Desplazamiento leve para no superponer puntos en la visualización cartográfica
-          const offsetLon = i * 0.002;
-          const offsetLat = i * 0.0015;
-          const lon = baseLon + offsetLon;
-          const lat = baseLat + offsetLat;
+          // Desplazamiento leve para no superponer puntos si no vienen coordenadas GPS exactas
+          let lon = baseLon + i * 0.002;
+          let lat = baseLat + i * 0.0015;
+          if (av.longitud !== undefined && av.latitud !== undefined && (av.longitud !== 0 || av.latitud !== 0)) {
+            lon = av.longitud;
+            lat = av.latitud;
+          }
+
           const speciesName = av.nombre_comun || av.nombre_cientifico || 'Aves';
 
           await client.query(
