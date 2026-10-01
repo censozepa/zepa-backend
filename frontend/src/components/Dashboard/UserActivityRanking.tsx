@@ -17,7 +17,6 @@ interface UserActivityRankingProps {
 export interface UserStatsRank {
   rank: number;
   name: string;
-  email: string;
   sessionsCount: number;
   sightingsCount: number;
   totalBirds: number;
@@ -54,7 +53,11 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
     // 1. Acumular desde sesiones
     sessions.forEach((s) => {
       const email = s.userEmail || '';
-      const name = s.userFullName || s.userEmail || 'Ornitólogo ZEPA';
+      // Priorizar nombre completo. Si no está disponible, usar alias previo a la arroba para proteger la privacidad.
+      const rawName = s.userFullName && s.userFullName.trim().length > 0
+        ? s.userFullName
+        : (email ? email.split('@')[0] : 'Ornitólogo ZEPA');
+      const name = rawName.includes('@') ? rawName.split('@')[0] : rawName;
       const key = (email || name).toLowerCase();
       if (!key) return;
 
@@ -81,7 +84,10 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
     sightings.forEach((f) => {
       const p = f.properties;
       const email = p.observerEmail || '';
-      const name = p.observer || p.observerEmail || 'Ornitólogo ZEPA';
+      const rawName = p.observer && p.observer.trim().length > 0
+        ? p.observer
+        : (email ? email.split('@')[0] : 'Ornitólogo ZEPA');
+      const name = rawName.includes('@') ? rawName.split('@')[0] : rawName;
       const key = (email || name).toLowerCase();
       if (!key) return;
 
@@ -121,7 +127,6 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
     return sorted.slice(0, 10).map((u, idx) => ({
       rank: idx + 1,
       name: u.name,
-      email: u.email,
       sessionsCount: u.sessionsCount,
       sightingsCount: u.sightingsCount,
       totalBirds: u.totalBirds,
@@ -220,7 +225,7 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
 
               return (
                 <div
-                  key={u.email || u.name}
+                  key={`${u.rank}-${u.name}`}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   style={{
@@ -318,7 +323,7 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
 
               return (
                 <div
-                  key={u.email || u.name}
+                  key={`${u.rank}-${u.name}`}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   style={{
@@ -349,11 +354,8 @@ export const UserActivityRanking: React.FC<UserActivityRankingProps> = ({
                         {badge.emoji}
                       </span>
                       <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: colors.textPrimary }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: colors.textPrimary }}>
                           {u.name}
-                        </div>
-                        <div style={{ fontSize: '11px', color: colors.textSecondary }}>
-                          {u.email}
                         </div>
                       </div>
                     </div>
