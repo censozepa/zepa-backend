@@ -4,6 +4,7 @@ import { DashboardView } from './components/Dashboard/DashboardView';
 import { MyRecordsView } from './components/MyRecords/MyRecordsView';
 import { MitecoView } from './components/Miteco/MitecoView';
 import { SettingsView } from './components/Settings/SettingsView';
+import { UsersManagementView } from './components/Users/UsersManagementView';
 import { AboutView } from './components/About/AboutView';
 import { LoginScreen } from './components/Auth/LoginScreen';
 import { fetchZepas, fetchSessions, fetchSightingsGeoJSON } from './services/api';
@@ -181,6 +182,10 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'miteco' && <MitecoView />}
+
+        {activeTab === 'users' && user.role === 'admin' && (
+          <UsersManagementView user={user} onRefreshGlobalData={refreshAllData} />
+        )}
 
         {activeTab === 'settings' && <SettingsView user={user} />}
 

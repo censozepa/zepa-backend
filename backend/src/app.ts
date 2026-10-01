@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth.routes.js';
 import { sightingRoutes } from './routes/sighting.routes.js';
 import { zepaRoutes } from './routes/zepa.routes.js';
 import { mitecoRoutes } from './routes/miteco.routes.js';
+import { adminRoutes } from './routes/admin.routes.js';
 import { androidRoutes } from './routes/android.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -19,6 +20,21 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifyCors, {
     origin: true, // En desarrollo permite todos los orígenes
     credentials: true,
+  });
+
+  // Parser JSON tolerante: Si una petición (ej. DELETE) llega con Content-Type application/json pero body vacío, no lanzar FST_ERR_CTP_EMPTY_JSON_BODY
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body: string, done) => {
+    if (!body || body.trim() === '') {
+      done(null, undefined);
+      return;
+    }
+    try {
+      const json = JSON.parse(body);
+      done(null, json);
+    } catch (err: any) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
   });
 
   // Plugins
@@ -38,6 +54,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(sightingRoutes, { prefix: '/api/sightings' });
   await app.register(zepaRoutes, { prefix: '/api' });
   await app.register(mitecoRoutes, { prefix: '/api/miteco' });
+  await app.register(adminRoutes, { prefix: '/api/admin/users' });
 
   // Rutas directas para la App Android (compatibles tanto con / como con /api)
   await app.register(androidRoutes);

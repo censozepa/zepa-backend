@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Bird,
   Database,
+  Users,
   Settings,
   Info,
   LogOut,
@@ -12,7 +13,7 @@ import {
 import { User } from '../../types/sightings';
 import { useTheme } from '../../context/ThemeContext';
 
-export type ActiveTab = 'dashboard' | 'my-records' | 'miteco' | 'settings' | 'about';
+export type ActiveTab = 'dashboard' | 'my-records' | 'miteco' | 'users' | 'settings' | 'about';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -56,6 +57,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: '658',
       tooltip: 'Directiva Aves: 658 ZEPAs oficiales de España (MITECO)',
     },
+    ...(user.role === 'admin'
+      ? [
+          {
+            id: 'users' as ActiveTab,
+            label: 'Gestión Usuarios',
+            icon: Users,
+            badge: 'Admin',
+            tooltip: 'Directorio de usuarios, métricas de actividad y Derecho al Olvido (RGPD)',
+          },
+        ]
+      : []),
     {
       id: 'settings' as ActiveTab,
       label: 'Configuraciones',

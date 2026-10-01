@@ -137,3 +137,20 @@ export interface ZepaDetailResponse {
   species: ZepaSpeciesRecord[];
 }
 
+export interface ManagedUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'volunteer' | 'admin' | 'researcher';
+  isActive: boolean;
+  googleId: string | null;
+  authProvider: 'google' | 'local' | 'android_google';
+  createdAt: string;
+  tenantName: string;
+  sessionsCount: number;
+  sightingsCount: number;
+  totalBirds: number;
+  distanceKm: number;
+  lastActiveAt: string | null;
+}
+

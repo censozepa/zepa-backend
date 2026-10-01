@@ -1,5 +1,6 @@
 import {
   AuthResponse,
+  ManagedUser,
   MitecoZepaSummary,
   SamplingSession,
   SightingFeatureCollection,
@@ -10,11 +11,12 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
-function getAuthHeaders(): HeadersInit {
+function getAuthHeaders(hasBody = false): HeadersInit {
   const token = localStorage.getItem('censozepa_token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = {};
+  if (hasBody) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -186,5 +188,53 @@ export async function fetchMitecoZepaDetails(sitecode: string): Promise<ZepaDeta
   }
   return response.json();
 }
+
+export async function fetchAdminUsers(): Promise<ManagedUser[]> {
+  const response = await fetch(`${API_BASE}/admin/users`, {
+    headers: getAuthHeaders(),
+  });
+  if (response.status === 401) {
+    localStorage.removeItem('censozepa_token');
+    localStorage.removeItem('censozepa_user');
+    window.location.reload();
+    throw new Error('Sesión expirada');
+  }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.users || [];
+}
+
+export async function deleteUserTotally(userId: string): Promise<{
+  status: string;
+  message: string;
+  deleted: {
+    userId: string;
+    email: string;
+    fullName: string;
+    role: string;
+    deletedSightings: number;
+    deletedSessions: number;
+  };
+}> {
+  const response = await fetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (response.status === 401) {
+    localStorage.removeItem('censozepa_token');
+    localStorage.removeItem('censozepa_user');
+    window.location.reload();
+    throw new Error('Sesión expirada');
+  }
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || `Error al eliminar usuario: ${response.status}`);
+  }
+  return data;
+}
+
 
 
