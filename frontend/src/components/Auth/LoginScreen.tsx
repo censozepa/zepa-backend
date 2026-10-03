@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User as UserIcon, ShieldCheck } from 'lucide-react';
+import { X, User as UserIcon, ShieldCheck, Ban, AlertCircle } from 'lucide-react';
 import { loginWithGoogle } from '../../services/api';
 import { User } from '../../types/sightings';
 
@@ -182,17 +182,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         {error && (
           <div
             style={{
-              padding: '12px 14px',
-              backgroundColor: '#fee2e2',
-              color: '#991b1b',
-              borderRadius: '10px',
+              padding: '14px 16px',
+              backgroundColor: error.toLowerCase().includes('suspendida') ? '#fff7ed' : '#fee2e2',
+              color: error.toLowerCase().includes('suspendida') ? '#9a3412' : '#991b1b',
+              borderRadius: '12px',
               fontSize: '13px',
               marginBottom: '20px',
-              border: '1px solid #f87171',
+              border: error.toLowerCase().includes('suspendida')
+                ? '1.5px solid #f97316'
+                : '1px solid #f87171',
               textAlign: 'left',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              boxShadow: error.toLowerCase().includes('suspendida')
+                ? '0 4px 12px rgba(249, 115, 22, 0.12)'
+                : 'none',
             }}
           >
-            {error}
+            <div style={{ flexShrink: 0, marginTop: '1px' }}>
+              {error.toLowerCase().includes('suspendida') ? (
+                <Ban size={20} color="#ea580c" />
+              ) : (
+                <AlertCircle size={18} color="#dc2626" />
+              )}
+            </div>
+            <div>
+              {error.toLowerCase().includes('suspendida') && (
+                <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#c2410c', marginBottom: '4px' }}>
+                  Cuenta Suspendida Temporalmente
+                </div>
+              )}
+              <div style={{ lineHeight: 1.45, fontWeight: 500 }}>{error}</div>
+            </div>
           </div>
         )}
 

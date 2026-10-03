@@ -39,12 +39,26 @@ export async function createOrVerifyAndroidUser(input: CreateUserInput): Promise
   if (existingUserRes.rows.length > 0) {
     const existingUser = existingUserRes.rows[0];
 
-    // Si ya existe, confirmar que está activo y actualizar google_id si procede
-    if (!existingUser.is_active || (!existingUser.google_id && input.google_id)) {
+    // Si la cuenta fue suspendida por el administrador, bloquear el acceso
+    if (!existingUser.is_active) {
+      return {
+        statusCode: 403,
+        response: {
+          status: 'error',
+          message: 'Su cuenta fue suspendida temporalmente. Por favor, póngase en contacto con el administrador.',
+          user: {
+            email: existingUser.email,
+            name: existingUser.full_name,
+          },
+        },
+      };
+    }
+
+    // Si ya existe y está activo, actualizar google_id si procede
+    if (!existingUser.google_id && input.google_id) {
       await pool.query(
         `UPDATE users 
-         SET is_active = true,
-             google_id = COALESCE(google_id, $2),
+         SET google_id = COALESCE(google_id, $2),
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $1`,
         [existingUser.id, input.google_id || null]
@@ -107,21 +121,28 @@ export async function addAndroidRegistry(input: AddRegistryInput): Promise<Andro
 
   // 1. Validar que el campo email corresponda a un usuario existente y activo
   const userRes = await pool.query(
-    `SELECT id, email, full_name, tenant_id 
+    `SELECT id, email, full_name, tenant_id, is_active 
      FROM users 
-     WHERE LOWER(email) = $1 AND is_active = true`,
+     WHERE LOWER(email) = $1`,
     [cleanEmail]
   );
 
   if (userRes.rows.length === 0) {
     const error: any = new Error(
-      `El usuario con email "${input.email}" no existe o no está activo. Regístrese previamente mediante /createuser.`
+      `El usuario con email "${input.email}" no existe. Regístrese previamente mediante /createuser.`
     );
     error.statusCode = 404;
     throw error;
   }
 
   const user = userRes.rows[0];
+  if (!user.is_active) {
+    const error: any = new Error(
+      'Su cuenta fue suspendida temporalmente. Por favor, póngase en contacto con el administrador.'
+    );
+    error.statusCode = 403;
+    throw error;
+  }
   let sesionesProcesadas = 0;
 
   const client = await pool.connect();

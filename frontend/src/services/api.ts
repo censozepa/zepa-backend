@@ -236,5 +236,34 @@ export async function deleteUserTotally(userId: string): Promise<{
   return data;
 }
 
-
-
+export async function toggleUserStatus(
+  userId: string,
+  isActive: boolean
+): Promise<{
+  status: string;
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+    isActive: boolean;
+  };
+}> {
+  const response = await fetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}/status`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ isActive }),
+  });
+  if (response.status === 401) {
+    localStorage.removeItem('censozepa_token');
+    localStorage.removeItem('censozepa_user');
+    window.location.reload();
+    throw new Error('Sesión expirada');
+  }
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || `Error al cambiar estado del usuario: ${response.status}`);
+  }
+  return data;
+}

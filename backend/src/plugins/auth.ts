@@ -2,6 +2,7 @@ import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fp from 'fastify-plugin';
 import { env } from '../config/env.js';
+import { pool } from '../config/db.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -33,6 +34,13 @@ const authPluginCallback: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       await request.jwtVerify();
+      const userCheck = await pool.query('SELECT is_active FROM users WHERE id = $1', [request.user.id]);
+      if (userCheck.rowCount === 0 || !userCheck.rows[0].is_active) {
+        return reply.status(401).send({
+          error: 'AccountSuspended',
+          message: 'Su cuenta fue suspendida temporalmente. Por favor, póngase en contacto con el administrador.',
+        });
+      }
     } catch (err) {
       reply.status(401).send({ error: 'Unauthorized', message: 'Token JWT inválido o expirado' });
     }
@@ -40,3 +48,4 @@ const authPluginCallback: FastifyPluginAsync = async (fastify) => {
 };
 
 export const authPlugin = fp(authPluginCallback);
+

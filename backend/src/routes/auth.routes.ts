@@ -55,6 +55,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
 
+    if (!user.is_active) {
+      return reply.status(403).send({
+        error: 'AccountSuspended',
+        message: 'Su cuenta fue suspendida temporalmente. Por favor, póngase en contacto con el administrador.',
+      });
+    }
+
     const token = fastify.jwt.sign({
       id: user.id,
       email: user.email,
@@ -94,6 +101,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(404).send({
         error: 'UserNotFound',
         message: `La cuenta de Google ${email} no está dada de alta en CensoZEPA.`,
+      });
+    }
+
+    if (!user.is_active) {
+      return reply.status(403).send({
+        error: 'AccountSuspended',
+        message: 'Su cuenta fue suspendida temporalmente. Por favor, póngase en contacto con el administrador.',
       });
     }
 

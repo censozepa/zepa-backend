@@ -139,3 +139,48 @@ export async function deleteUserTotally(userId: string, currentAdminId: string) 
     client.release();
   }
 }
+
+export async function toggleUserActiveStatus(
+  userId: string,
+  isActive: boolean,
+  currentAdminId: string
+) {
+  if (userId === currentAdminId && !isActive) {
+    throw {
+      statusCode: 400,
+      message: 'No puedes suspender tu propia cuenta de administrador.',
+    };
+  }
+
+  const userRes = await pool.query(
+    'SELECT id, email, full_name, role, is_active FROM users WHERE id = $1',
+    [userId]
+  );
+
+  if (userRes.rowCount === 0) {
+    throw {
+      statusCode: 404,
+      message: 'El usuario especificado no existe.',
+    };
+  }
+
+  const targetUser = userRes.rows[0];
+
+  const updateRes = await pool.query(
+    `UPDATE users 
+     SET is_active = $2, updated_at = CURRENT_TIMESTAMP 
+     WHERE id = $1 
+     RETURNING id, email, full_name AS "fullName", role, is_active AS "isActive"`,
+    [userId, isActive]
+  );
+
+  const updatedUser = updateRes.rows[0];
+
+  return {
+    status: 'success',
+    message: isActive
+      ? `La cuenta de ${targetUser.full_name} (${targetUser.email}) ha sido reactivada con éxito.`
+      : `La cuenta de ${targetUser.full_name} (${targetUser.email}) ha sido suspendida temporalmente. El usuario no podrá iniciar sesión hasta que sea reactivada.`,
+    user: updatedUser,
+  };
+}

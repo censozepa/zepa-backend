@@ -45,7 +45,7 @@ export async function validateUserCredentials(email: string, password: string): 
             u.tenant_id, t.name AS tenant_name, t.slug AS tenant_slug
      FROM users u
      LEFT JOIN tenants t ON t.id = u.tenant_id
-     WHERE u.email = $1 AND u.is_active = true`,
+     WHERE u.email = $1`,
     [email.toLowerCase()]
   );
 
@@ -54,6 +54,10 @@ export async function validateUserCredentials(email: string, password: string): 
   }
 
   const user = result.rows[0];
+  if (!user.password_hash) {
+    return null;
+  }
+
   const isValid = await bcrypt.compare(password, user.password_hash);
   if (!isValid) {
     return null;
@@ -81,8 +85,9 @@ export async function getUserByEmail(email: string): Promise<SafeUser | null> {
             u.tenant_id, t.name AS tenant_name, t.slug AS tenant_slug
      FROM users u
      LEFT JOIN tenants t ON t.id = u.tenant_id
-     WHERE u.email = $1 AND u.is_active = true`,
+     WHERE u.email = $1`,
     [email.toLowerCase()]
   );
   return result.rows[0] || null;
 }
+

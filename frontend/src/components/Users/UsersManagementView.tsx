@@ -17,9 +17,11 @@ import {
   CheckCircle2,
   X,
   Lock,
+  Ban,
+  UserCheck,
 } from 'lucide-react';
 import { User, ManagedUser } from '../../types/sightings';
-import { fetchAdminUsers, deleteUserTotally } from '../../services/api';
+import { fetchAdminUsers, deleteUserTotally, toggleUserStatus } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 
 interface UsersManagementViewProps {
@@ -42,11 +44,13 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [providerFilter, setProviderFilter] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  // Estados de eliminación (Derecho al Olvido / RGPD)
+  // Estados de eliminación (Derecho al Olvido / RGPD) y suspensión temporal
   const [userToDelete, setUserToDelete] = useState<ManagedUser | null>(null);
   const [confirmText, setConfirmText] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -89,15 +93,23 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
         matchProvider = u.authProvider === 'local';
       }
 
-      return matchSearch && matchRole && matchProvider;
+      let matchStatus = true;
+      if (statusFilter === 'active') {
+        matchStatus = u.isActive === true;
+      } else if (statusFilter === 'suspended') {
+        matchStatus = u.isActive === false;
+      }
+
+      return matchSearch && matchRole && matchProvider && matchStatus;
     });
-  }, [users, searchTerm, roleFilter, providerFilter]);
+  }, [users, searchTerm, roleFilter, providerFilter, statusFilter]);
 
   // Métricas agregadas
   const metrics = useMemo(() => {
     const totalUsers = users.length;
     const adminsCount = users.filter((u) => u.role === 'admin').length;
     const volunteersCount = users.filter((u) => u.role === 'volunteer').length;
+    const suspendedCount = users.filter((u) => !u.isActive).length;
     const androidUsersCount = users.filter((u) => u.authProvider === 'android_google').length;
     const totalSessions = users.reduce((acc, u) => acc + (u.sessionsCount || 0), 0);
     const totalSightings = users.reduce((acc, u) => acc + (u.sightingsCount || 0), 0);
@@ -108,6 +120,7 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
       totalUsers,
       adminsCount,
       volunteersCount,
+      suspendedCount,
       androidUsersCount,
       totalSessions,
       totalSightings,
@@ -115,6 +128,23 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
       totalKm: parseFloat(totalKm.toFixed(1)),
     };
   }, [users]);
+
+  // Suspender (desactivar) o reactivar el login de un usuario
+  const handleToggleStatus = async (targetUser: ManagedUser) => {
+    try {
+      setTogglingUserId(targetUser.id);
+      setActionError(null);
+      setError(null);
+      const nextStatus = !targetUser.isActive;
+      const res = await toggleUserStatus(targetUser.id, nextStatus);
+      setActionSuccess(res.message);
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.message || 'Error al actualizar el estado del usuario.');
+    } finally {
+      setTogglingUserId(null);
+    }
+  };
 
   // Ejecutar eliminación según Derecho al Olvido
   const handleConfirmDelete = async () => {
@@ -367,10 +397,18 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
           <div style={{ fontSize: '26px', fontWeight: 800, color: colors.textPrimary, margin: '8px 0 4px 0' }}>
             {metrics.totalUsers}
           </div>
-          <div style={{ fontSize: '11.5px', color: colors.textSecondary, display: 'flex', gap: '8px' }}>
+          <div style={{ fontSize: '11.5px', color: colors.textSecondary, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <span><strong>{metrics.adminsCount}</strong> admin</span>
             <span>•</span>
             <span><strong>{metrics.volunteersCount}</strong> voluntarios</span>
+            {metrics.suspendedCount > 0 && (
+              <>
+                <span>•</span>
+                <span style={{ color: '#f97316', fontWeight: 700 }}>
+                  {metrics.suspendedCount} suspendidos
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -555,6 +593,27 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
             <option value="google">Google OAuth</option>
             <option value="local">Email / Contraseña</option>
           </select>
+
+          {/* Filtro por Estado de Cuenta */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '9px 14px',
+              borderRadius: '10px',
+              border: `1px solid ${colors.cardBorder}`,
+              backgroundColor: colors.cardBg,
+              color: colors.textPrimary,
+              fontSize: '13px',
+              fontWeight: 600,
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="ALL">Todos los estados</option>
+            <option value="active">Cuentas Activas</option>
+            <option value="suspended">Cuentas Suspendidas</option>
+          </select>
         </div>
 
         <div style={{ fontSize: '12.5px', color: colors.textSecondary, fontWeight: 600 }}>
@@ -593,7 +652,7 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                   <th style={{ padding: '14px 16px' }}>Fecha Registro</th>
                   <th style={{ padding: '14px 16px' }}>Muestreos & Aves</th>
                   <th style={{ padding: '14px 16px' }}>Última Actividad</th>
-                  <th style={{ padding: '14px 20px', textAlign: 'right' }}>Acciones (RGPD)</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'right' }}>Control Acceso & RGPD</th>
                 </tr>
               </thead>
               <tbody>
@@ -640,6 +699,8 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                           borderBottom: `1px solid ${colors.cardBorder}`,
                           transition: 'background-color 0.15s ease',
                           fontSize: '13px',
+                          backgroundColor: !u.isActive ? 'rgba(249, 115, 22, 0.04)' : 'transparent',
+                          opacity: !u.isActive ? 0.85 : 1,
                         }}
                       >
                         {/* Columna 1: Usuario con Avatar y Email */}
@@ -650,7 +711,11 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                                 width: '38px',
                                 height: '38px',
                                 borderRadius: '50%',
-                                backgroundColor: isSelf ? '#0284c7' : colors.accent,
+                                backgroundColor: !u.isActive
+                                  ? '#94a3b8'
+                                  : isSelf
+                                  ? '#0284c7'
+                                  : colors.accent,
                                 color: '#ffffff',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -664,8 +729,14 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                               {u.fullName ? u.fullName.charAt(0) : u.email.charAt(0)}
                             </div>
                             <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <strong style={{ color: colors.textPrimary, fontSize: '13.5px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                <strong
+                                  style={{
+                                    color: colors.textPrimary,
+                                    fontSize: '13.5px',
+                                    textDecoration: !u.isActive ? 'line-through' : 'none',
+                                  }}
+                                >
                                   {u.fullName || 'Sin nombre'}
                                 </strong>
                                 {isSelf && (
@@ -680,6 +751,41 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                                     }}
                                   >
                                     Tú
+                                  </span>
+                                )}
+                                {!u.isActive ? (
+                                  <span
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      fontSize: '10px',
+                                      fontWeight: 800,
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      backgroundColor: 'rgba(249, 115, 22, 0.15)',
+                                      color: '#ea580c',
+                                      border: '1px solid rgba(249, 115, 22, 0.35)',
+                                    }}
+                                  >
+                                    <Ban size={10} />
+                                    Suspendido
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      fontSize: '10px',
+                                      fontWeight: 700,
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                      color: '#059669',
+                                    }}
+                                  >
+                                    Activo
                                   </span>
                                 )}
                               </div>
@@ -772,7 +878,7 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                           </div>
                         </td>
 
-                        {/* Columna 7: Acción Derecho al Olvido */}
+                        {/* Columna 7: Acciones (Desactivar / Activar Cuenta y Derecho al Olvido) */}
                         <td style={{ padding: '14px 20px', textAlign: 'right' }}>
                           {isSelf ? (
                             <span
@@ -787,37 +893,78 @@ export const UsersManagementView: React.FC<UsersManagementViewProps> = ({
                                 borderRadius: '6px',
                                 border: `1px solid ${colors.cardBorder}`,
                               }}
-                              title="No puedes eliminar tu propia cuenta de administrador"
+                              title="No puedes desactivar ni eliminar tu propia cuenta de administrador"
                             >
                               <Lock size={12} />
                               Protegido
                             </span>
                           ) : (
-                            <button
-                              onClick={() => {
-                                setUserToDelete(u);
-                                setConfirmText('');
-                                setActionError(null);
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                color: '#ef4444',
-                                border: '1px solid rgba(239, 68, 68, 0.25)',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                              title="Eliminar usuario y todos sus registros (Derecho al Olvido RGPD)"
-                            >
-                              <Trash2 size={14} />
-                              Derecho al Olvido
-                            </button>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                              {/* Botón Desactivar / Activar Cuenta */}
+                              <button
+                                onClick={() => handleToggleStatus(u)}
+                                disabled={togglingUserId === u.id}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  backgroundColor: u.isActive
+                                    ? 'rgba(249, 115, 22, 0.1)'
+                                    : 'rgba(16, 185, 129, 0.12)',
+                                  color: u.isActive ? '#ea580c' : '#059669',
+                                  border: u.isActive
+                                    ? '1px solid rgba(249, 115, 22, 0.3)'
+                                    : '1px solid rgba(16, 185, 129, 0.3)',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: togglingUserId === u.id ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                title={
+                                  u.isActive
+                                    ? 'Suspender / desactivar temporalmente el acceso (login) de este usuario'
+                                    : 'Reactivar el acceso (login) de este usuario'
+                                }
+                              >
+                                {togglingUserId === u.id ? (
+                                  <RefreshCw size={13} className="animate-spin" />
+                                ) : u.isActive ? (
+                                  <Ban size={13} />
+                                ) : (
+                                  <UserCheck size={13} />
+                                )}
+                                {u.isActive ? 'Desactivar Cuenta' : 'Activar Cuenta'}
+                              </button>
+
+                              {/* Botón Derecho al Olvido */}
+                              <button
+                                onClick={() => {
+                                  setUserToDelete(u);
+                                  setConfirmText('');
+                                  setActionError(null);
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                  color: '#ef4444',
+                                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                title="Eliminar usuario y todos sus registros (Derecho al Olvido RGPD)"
+                              >
+                                <Trash2 size={14} />
+                                Derecho al Olvido
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
